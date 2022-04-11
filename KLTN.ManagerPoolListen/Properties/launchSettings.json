@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "KLTN.ManagerPoolListen": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
