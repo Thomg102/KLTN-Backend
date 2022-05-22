@@ -17,6 +17,7 @@ namespace KLTN.Common.Models
         public string LecturerCollectionName { get; set; }
         public string DepartmentCollectionName { get; set; }
         public string ProductCollectionName { get; set; }
+        public string ActiveRequestCollectionName { get; set; }
         public string AdminAddress { get; set; }
         public static void SetValue(WebAPIAppSettings configuration)
         {
