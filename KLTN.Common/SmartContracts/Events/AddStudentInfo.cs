@@ -8,7 +8,7 @@ namespace KLTN.Common.SmartContracts.Events
         [Parameter("address", "studentAddr", 1, false)]
         public string StudentAddr { get; set; }
 
-        [Parameter("string", "hashInfo", 1, false)]
+        [Parameter("string", "hashInfo", 2, false)]
         public string HashInfo { get; set; }
     }
 }
