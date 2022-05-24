@@ -1,4 +1,5 @@
-﻿using KLTN.Common.Exceptions;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.ScholarshipServices.DTOs;
 using KLTN.Core.ScholarshipServices.Interfaces;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.ScholarshipServices.Implementations
@@ -24,11 +26,11 @@ namespace KLTN.Core.ScholarshipServices.Implementations
 
         public ScholarshipService(ILogger<ScholarshipService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _scholarship = database.GetCollection<Scholarship>(_settings.ScholarshipCollectionName);
             _student = database.GetCollection<Student>(_settings.StudentCollectionName);
@@ -145,6 +147,33 @@ namespace KLTN.Core.ScholarshipServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllScholarshipOfLecturer");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewScholarship(ScholarshipDTO scholarship)
+        {
+            try
+            {
+                await _scholarship.InsertOneAsync(new Scholarship()
+                {
+                    ScholarshipName = scholarship.ScholarshipName,
+                    ScholarshipAddress = scholarship.ScholarshipAddress,
+                    ScholarshipStatus = Status.Opening.ToString(),
+                    ScholarshipHashIPFS = scholarship.ScholarshipHashIPFS,
+                    DepartmentName = scholarship.DepartmentName,
+                    StartTime = scholarship.StartTime,
+                    EndTime = scholarship.EndTime,
+                    EndTimeToResigter = scholarship.EndTimeToResigter,
+                    EndTimeToComFirm = scholarship.EndTimeToComFirm,
+                    LecturerAddress = scholarship.LecturerAddress,
+                    LecturerName = scholarship.LecturerName,
+                    TokenAmount = scholarship.TokenAmount
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewScholarship");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

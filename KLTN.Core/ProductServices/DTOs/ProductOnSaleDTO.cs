@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KLTN.Core.ActiveRequestServices.DTOs
+namespace KLTN.Core.ProductServices.DTOs
 {
-    public class ActivateRequestResponseDTO
+    public class ProductOnSaleDTO
     {
-        public string RequestId { get; set; }
         public string ProductName { get; set; }
-        public string StudentAddress { get; set; }
         public string ProductId { get; set; }
         public string ProductHahIPFS { get; set; }
-        public string AmountToActive { get; set; }
+        public string AmountOnSale { get; set; }
+        public long PriceOfOneItem { get; set; }
         public string ProductTypeName { get; set; }
-        public bool IsActived { get; set; }
+        public string ProductDescription { get; set; }
     }
 }

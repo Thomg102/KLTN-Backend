@@ -12,6 +12,7 @@ namespace KLTN.Core.StudentServices.DTOs
         public string MajorName { get; set; }
         public string ClassroomName { get; set; }
         public string DepartmentName { get; set; }
+        public string DepartmentShortenName { get; set; }
         public int SchoolYear { get; set; }
         public string Sex { get; set; }
         public long DateOfBirth { get; set; }

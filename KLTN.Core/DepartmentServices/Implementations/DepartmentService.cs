@@ -1,18 +1,21 @@
 ﻿using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.DepartmentServices.DTOs;
+using KLTN.Core.DepartmentServices.Interfaces;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.DepartmentServices.Implementations
 {
-    public class DepartmentService
+    public class DepartmentService : IDepartmentService
     {
         private readonly ILogger<DepartmentService> _logger;
         private readonly IMongoCollection<Department> _department;
@@ -20,11 +23,11 @@ namespace KLTN.Core.DepartmentServices.Implementations
         private readonly WebAPIAppSettings _settings;
         public DepartmentService(ILogger<DepartmentService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _department = database.GetCollection<Department>(_settings.DepartmentCollectionName);
         }
@@ -65,6 +68,40 @@ namespace KLTN.Core.DepartmentServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllDepartment");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewDepartment(DepartmentDTO department)
+        {
+            try
+            {
+                await _department.InsertOneAsync(new Department()
+                {
+                    DepartmentName = department.DepartmentName,
+                    DepartmentShortenName = department.DepartmentShortenName,
+                    SubjectList = department.SubjectList
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewDepartment");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewSubjectInDepartment(string departmentShortenName, SubjectType subjectType)
+        {
+            try
+            {
+                var filter = Builders<Department>.Filter.Eq("DepartmentShortenName", departmentShortenName);
+                var update = Builders<Department>.Update.Push("SubjectList", subjectType);
+
+                await _department.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewSubjectInDepartment");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

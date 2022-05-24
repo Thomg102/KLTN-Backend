@@ -10,5 +10,6 @@ namespace KLTN.Core.LecturerServicess.DTOs
         public string LecturerId { get; set; }
         public string LecturerAddress { get; set; }
         public string DepartmentName { get; set; }
+        public string DepartmentShortenName { get; set; }
     }
 }

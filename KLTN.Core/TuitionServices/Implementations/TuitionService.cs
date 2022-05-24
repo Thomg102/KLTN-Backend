@@ -1,6 +1,8 @@
-﻿using KLTN.Common.Exceptions;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.TuitionServices.DTOs;
+using KLTN.Core.TuitionServices.Interfaces;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -9,11 +11,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.TuitionServices.Implementations
 {
-    public class TuitionService
+    public class TuitionService : ITuitionService
     {
         private readonly ILogger<TuitionService> _logger;
         private readonly IMongoCollection<Tuition> _tuition;
@@ -23,11 +26,11 @@ namespace KLTN.Core.TuitionServices.Implementations
 
         public TuitionService(ILogger<TuitionService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _tuition = database.GetCollection<Tuition>(_settings.TuitionCollectionName);
             _student = database.GetCollection<Student>(_settings.StudentCollectionName);
@@ -114,6 +117,30 @@ namespace KLTN.Core.TuitionServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewTuition(TuitionDTO tuition)
+        {
+            try
+            {
+                await _tuition.InsertOneAsync(new Tuition()
+                {
+                    TuitionName = tuition.TuitionName,
+                    TuitionAddress = tuition.TuitionAddress,
+                    TuitionDescription = tuition.TuitionDescription,
+                    TuitionHashIPFS = tuition.TuitionHashIPFS,
+                    TuitionStatus = Status.Opening.ToString(),
+                    SchoolYear = tuition.SchoolYear,
+                    StartTime = tuition.StartTime,
+                    EndTime = tuition.EndTime,
+                    TokenAmount = tuition.TokenAmount
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewTuition");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

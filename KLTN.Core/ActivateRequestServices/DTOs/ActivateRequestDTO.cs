@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KLTN.Core.ActiveRequestServices.DTOs
+namespace KLTN.Core.ActivateRequestServices.DTOs
 {
-    public class ActivateRequestResponseDTO
+    public class ActivateRequestDTO
     {
         public string RequestId { get; set; }
         public string ProductName { get; set; }
@@ -13,6 +13,5 @@ namespace KLTN.Core.ActiveRequestServices.DTOs
         public string ProductHahIPFS { get; set; }
         public string AmountToActive { get; set; }
         public string ProductTypeName { get; set; }
-        public bool IsActived { get; set; }
     }
 }

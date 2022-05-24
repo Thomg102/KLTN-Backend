@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\KLTN.Common\KLTN.Common.csproj" />
+    <ProjectReference Include="..\KLTN.Core\KLTN.Core.csproj" />
   </ItemGroup>
 
 </Project>

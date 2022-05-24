@@ -1,4 +1,5 @@
-﻿using KLTN.Common.Exceptions;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.StudentServices.DTOs;
 using KLTN.Core.StudentServices.Interfaces;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.StudentServices.Implementations
@@ -29,11 +31,11 @@ namespace KLTN.Core.StudentServices.Implementations
 
         public StudentService(ILogger<StudentService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _student = database.GetCollection<Student>(_settings.StudentCollectionName);
             _mission = database.GetCollection<Mission>(_settings.MissionCollectionName);
@@ -211,6 +213,38 @@ namespace KLTN.Core.StudentServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllStudent");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+        public async Task CreateNewStudent(StudentDTO student)
+        {
+            try
+            {
+                await _student.InsertOneAsync(new Student()
+                {
+                    StudentName = student.StudentName,
+                    StudentId = student.StudentId,
+                    StudentAddress = student.StudentAddress,
+                    MajorName = student.MajorName,
+                    ClassroomName = student.ClassroomName,
+                    DepartmentName = student.DepartmentName,
+                    SchoolYear = student.SchoolYear,
+                    Sex = student.Sex,
+                    DateOfBirth = student.DateOfBirth,
+                    BirthPlace = student.BirthPlace,
+                    Ethnic = student.Ethnic,
+                    NationalId = student.NationalId,
+                    DateOfNationalId = student.DateOfNationalId,
+                    PlaceOfNationalId = student.PlaceOfNationalId,
+                    PermanentAddress = student.PermanentAddress,
+                    TemporaryAddress = student.TemporaryAddress,
+                    StudentHashIPFS = student.StudentHashIPFS,
+                    DepartmentShortenName = student.DepartmentShortenName
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewSubject");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
