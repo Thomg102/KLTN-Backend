@@ -1,6 +1,7 @@
 ﻿using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.ProductServices.DTOs;
+using KLTN.Core.ProductServices.Interfaces;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -8,14 +9,16 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.ProductServices.Implementations
 {
-    public class ProductService
+    public class ProductService : IProductService
     {
         private readonly ILogger<ProductService> _logger;
         private readonly IMongoCollection<ProductOnSale> _product;
+        private readonly IMongoCollection<ProductType> _productType;
         private readonly IMongoCollection<Student> _student;
         private string _adminAddress;
 
@@ -23,14 +26,16 @@ namespace KLTN.Core.ProductServices.Implementations
 
         public ProductService(ILogger<ProductService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
 
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
+
             _product = database.GetCollection<ProductOnSale>(_settings.ProductCollectionName);
             _student = database.GetCollection<Student>(_settings.StudentCollectionName);
+            _productType = database.GetCollection<ProductType>(_settings.ProductTypeCollectionName);
+
             _adminAddress = _settings.AdminAddress;
         }
 
@@ -172,6 +177,50 @@ namespace KLTN.Core.ProductServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetListOfAllProductOnSale");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public List<ProductTypeResponseDTO> GetListOfAllProductType()
+        {
+            try
+            {
+                var result = new List<ProductTypeResponseDTO>();
+                var productTypeList = _productType.Find<ProductType>(_ => true).ToList();
+                if (productTypeList != null && productTypeList.Count > 0)
+                    foreach (var productType in productTypeList)
+                        result.Add(new ProductTypeResponseDTO()
+                        {
+                            ProductTypeName = productType.ProductTypeName,
+                            IsIdependentNFT = productType.IsIdependentNFT
+                        });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetListOfAllProductType");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+        public async Task CreateNewProductOnSale(ProductOnSaleDTO product)
+        {
+            try
+            {
+                await _product.InsertOneAsync(new ProductOnSale()
+                {
+                    ProductName = product.ProductName,
+                    ProductId = product.ProductId,
+                    ProductHahIPFS = product.ProductHahIPFS,
+                    AmountOnSale = product.AmountOnSale,
+                    PriceOfOneItem = product.PriceOfOneItem,
+                    ProductTypeName = product.ProductTypeName,
+                    ProductDescription = product.ProductDescription,
+                    SaleAddress = _adminAddress
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewProductOnSale");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

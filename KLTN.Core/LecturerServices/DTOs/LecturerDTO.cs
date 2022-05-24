@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KLTN.Core.LecturerServicess.DTOs
+namespace KLTN.Core.LecturerServices.DTOs
 {
-    public class LecturerResponseDTO
+    public class LecturerDTO
     {
         public string LecturerName { get; set; }
         public string LecturerId { get; set; }

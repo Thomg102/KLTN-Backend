@@ -25,6 +25,9 @@ namespace KLTN.DAL.Models.Entities
 
     public class ProductType
     {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public ObjectId Id { get; set; }
         public string ProductTypeName { get; set; }
         public bool IsIdependentNFT { get; set; }
     }

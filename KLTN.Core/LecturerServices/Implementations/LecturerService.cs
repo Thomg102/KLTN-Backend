@@ -1,5 +1,6 @@
 ﻿using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
+using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.DAL.Models.Entities;
@@ -10,6 +11,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.LecturerServicess.Implementations
@@ -22,11 +24,11 @@ namespace KLTN.Core.LecturerServicess.Implementations
         private readonly WebAPIAppSettings _settings;
         public LecturerService(ILogger<LecturerService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _lecturer = database.GetCollection<Lecturer>(_settings.LecturerCollectionName);
         }
@@ -60,7 +62,8 @@ namespace KLTN.Core.LecturerServicess.Implementations
                         LecturerName = info.LecturerName,
                         LecturerId = info.LecturerId,
                         LecturerAddress = info.LecturerAddress,
-                        DepartmentName = info.DepartmentName
+                        DepartmentName = info.DepartmentName,
+                        DepartmentShortenName = info.DepartmentShortenName
                     };
                     result.Add(lecturer);
                 }
@@ -70,6 +73,26 @@ namespace KLTN.Core.LecturerServicess.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllLecturer");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewLectuter(LecturerDTO lecturer)
+        {
+            try
+            {
+                await _lecturer.InsertOneAsync(new Lecturer()
+                {
+                    LecturerName = lecturer.LecturerName,
+                    LecturerId = lecturer.LecturerId,
+                    LecturerAddress = lecturer.LecturerAddress,
+                    DepartmentName = lecturer.DepartmentName,
+                    DepartmentShortenName = lecturer.DepartmentShortenName
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewLectuter");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

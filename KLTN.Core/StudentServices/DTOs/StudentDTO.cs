@@ -1,18 +1,11 @@
-﻿using KLTN.Common.Enums;
-using KLTN.DAL.Models.DTOs;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace KLTN.DAL.Models.Entities
+namespace KLTN.Core.StudentServices.DTOs
 {
-    public class Student
+    public class StudentDTO
     {
-        [BsonId]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId Id { get; set; }
         public string StudentName { get; set; }
         public string StudentId { get; set; }
         public string StudentAddress { get; set; }
@@ -31,6 +24,5 @@ namespace KLTN.DAL.Models.Entities
         public string PermanentAddress { get; set; }
         public string TemporaryAddress { get; set; }
         public string StudentHashIPFS { get; set; }
-        public List<ProductOfStudentDTO> ProductOfStudentList { get; set; }
     }
 }

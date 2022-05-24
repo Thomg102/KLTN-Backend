@@ -15,7 +15,7 @@ namespace KLTN.DAL.Models.Entities
         public ObjectId Id { get; set; }
         public string RequestId { get; set; }
         public string ProductName { get; set; }
-        public string StudentName { get; set; }
+        public string StudentAddress { get; set; }
         public string ProductId { get; set; }
         public string ProductHahIPFS { get; set; }
         public string AmountToActive { get; set; }

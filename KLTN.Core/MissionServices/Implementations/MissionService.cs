@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 using KLTN.DAL.Models.DTOs;
+using KLTN.Common.Enums;
 
 namespace KLTN.Core.MissionServices.Implementations
 {
@@ -20,18 +21,20 @@ namespace KLTN.Core.MissionServices.Implementations
     {
         private readonly ILogger<MissionService> _logger;
         private readonly IMongoCollection<Mission> _mission;
+        private readonly IMongoCollection<MissionType> _missionType;
 
         private readonly WebAPIAppSettings _settings;
 
         public MissionService(ILogger<MissionService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
 
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
+
             _mission = database.GetCollection<Mission>(_settings.MissionCollectionName);
+            _missionType = database.GetCollection<MissionType>(_settings.MissionTypeCollectionName);
         }
 
         // Get detail of specific mission Student/Lecturer/Admin
@@ -87,7 +90,7 @@ namespace KLTN.Core.MissionServices.Implementations
                     if (studentAddress != null)
                         foreach (var joinedStudentList in joinedMission.JoinedStudentList)
                         {
-                            if(joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                            if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
                             {
                                 result.Add(new StudentMissionResponseDTO()
                                 {
@@ -152,6 +155,58 @@ namespace KLTN.Core.MissionServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllMissionOfLecturer");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public List<MissionTypeResponseDTO> GetListOfAllMissionType()
+        {
+            try
+            {
+                var result = new List<MissionTypeResponseDTO>();
+                var missionTypeList = _missionType.Find<MissionType>(_ => true).ToList();
+                if (missionTypeList != null && missionTypeList.Count > 0)
+                    foreach (var missionType in missionTypeList)
+                        result.Add(new MissionTypeResponseDTO()
+                        {
+                            MissionName = missionType.MissionName,
+                            MissionHash = missionType.MissionHash
+                        });
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetListOfAllProductType");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewMission(MissionDTO mission)
+        {
+            try
+            {
+                await _mission.InsertOneAsync(new Mission()
+                {
+                    MissionName = mission.MissionName,
+                    MissionAddress = mission.MissionAddress,
+                    MissionShortenName = mission.MissionShortenName,
+                    MissionDescription = mission.MissionDescription,
+                    MissionStatus = Status.Opening.ToString(),
+                    MissionHashIPFS = mission.MissionHashIPFS,
+                    DepartmentName = mission.DepartmentName,
+                    StartTime = mission.StartTime,
+                    EndTime = mission.EndTime,
+                    EndTimeToResigter = mission.EndTimeToResigter,
+                    EndTimeToComFirm = mission.EndTimeToComFirm,
+                    MaxStudentAmount = mission.MaxStudentAmount,
+                    LecturerAddress = mission.LecturerAddress,
+                    LecturerName = mission.LecturerName,
+                    TokenAmount = mission.TokenAmount
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewMission");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

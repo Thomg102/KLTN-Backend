@@ -8,5 +8,10 @@ namespace KLTN.Core.MissionServices.Interfaces
 {
     public interface IMissionService
     {
+        MissionDetailResponseDTO GetDetailOfMission(string missionAddress, string studentAddress);
+        List<StudentMissionResponseDTO> GetAllMission(string studentAddress);
+        List<LecturerMissionResponseDTO> GetAllMissionOfLecturer(string lecturerAddress);
+        List<MissionTypeResponseDTO> GetListOfAllMissionType();
+        Task CreateNewMission(MissionDTO mission);
     }
 }

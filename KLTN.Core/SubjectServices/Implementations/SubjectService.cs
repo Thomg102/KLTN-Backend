@@ -1,4 +1,5 @@
-﻿using KLTN.Common.Exceptions;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
@@ -10,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
 namespace KLTN.Core.SubjectServices.Implementations
@@ -23,11 +25,11 @@ namespace KLTN.Core.SubjectServices.Implementations
 
         public SubjectService(ILogger<SubjectService> logger, IOptions<WebAPIAppSettings> settings)
         {
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
             _logger = logger;
             _settings = settings.Value;
+
+            var client = new MongoClient(_settings.ConnectionString);
+            var database = client.GetDatabase(_settings.DatabaseName);
 
             _subject = database.GetCollection<Subject>(_settings.SubjectCollectionName);
         }
@@ -150,6 +152,36 @@ namespace KLTN.Core.SubjectServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllSubjectOfLecturer");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task CreateNewSubject(SubjectDTO subject)
+        {
+            try
+            {
+                await _subject.InsertOneAsync(new Subject()
+                {
+                    SubjectName = subject.SubjectName,
+                    SubjectAddress = subject.SubjectAddress,
+                    SubjectShortenName = subject.SubjectShortenName,
+                    SubjectDescription = subject.SubjectDescription,
+                    SubjectStatus = Status.Opening.ToString(),
+                    SubjectHashIPFS = subject.SubjectHashIPFS,
+                    DepartmentName = subject.DepartmentName,
+                    StartTime = subject.StartTime,
+                    EndTime = subject.EndTime,
+                    EndTimeToResigter = subject.EndTimeToResigter,
+                    EndTimeToComFirm = subject.EndTimeToComFirm,
+                    MaxStudentAmount = subject.MaxStudentAmount,
+                    LecturerAddress = subject.LecturerAddress,
+                    LecturerName = subject.LecturerName,
+                    TokenAmount = subject.TokenAmount
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateNewSubject");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
