@@ -1,9 +1,12 @@
 using KLTN.Common.Models;
 using KLTN.Common.SmartContracts.Events;
+using KLTN.Common.Utilities.Constants;
 using KLTN.Core.MissionServices.Interfaces;
 using KLTN.Core.ScholarshipServices.Interfaces;
 using KLTN.Core.SubjectServices.Interfaces;
+using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
+using KLTN.ManagerPoolListen.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,10 +14,12 @@ using Nethereum.Contracts;
 using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Reactive.Eth;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,18 +50,19 @@ namespace KLTN.ManagerPoolListen
             {
                 try
                 {
+                    _logger.LogInformation("Application start ");
                     await client.StartAsync();
-                    await ListenAddStudentEvent(client);
-                    await ListenAddLecturerEvent(client);
-                    await ListenUpdateStudentInfoEvent(client);
-                    await ListenNewMissionEvent(client);
-                    await ListenNewSubjectEvent(client);
+                    /*           await ListenAddStudentEvent(client);
+                               await ListenAddLecturerEvent(client);
+                               await ListenUpdateStudentInfoEvent(client);
+                               await ListenNewMissionEvent(client);
+                               await ListenNewSubjectEvent(client);*/
                     await ListenNewScholarshipEvent(client);
                     await ListenNewTuitionEvent(client);
-                    _ = ListenActiveMissionContract(client);
-                    _ = ListenActiveSubjectContract(client);
-                    _ = ListenActiveScholarshipContract(client);
-                    _ = ListenActiveTuitionContract(client);
+                    /*                 _ = ListenActiveMissionContract(client);
+                                     _ = ListenActiveSubjectContract(client);
+                                     _ = ListenActiveScholarshipContract(client);
+                                     _ = ListenActiveTuitionContract(client);*/
                     await PingAliveWS(client, stoppingToken);
                 }
                 catch (Exception ex)
@@ -67,6 +73,21 @@ namespace KLTN.ManagerPoolListen
             }
         }
 
+        private async Task<string> RequestIPFS(string hashInfo)
+        {
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+
+            var response = httpClient.GetAsync($"{Constants.IPFS_BASE_URL}{hashInfo}").Result;
+            if (response.IsSuccessStatusCode)
+            {
+                var json = await response.Content.ReadAsStringAsync();
+                //var fixtureStreamUrl = JsonConvert.DeserializeObject<>(json);
+                return json;
+            }
+            return String.Empty;
+        }
+
         private async Task ListenNewTuitionEvent(StreamingWebSocketClient client)
         {
             var filter = web3.Eth.GetEvent<NewTuitionEventDTO>(managerPoolAddress).CreateFilterInput();
@@ -75,8 +96,28 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewTuitionEventDTO> decoded = Event<NewTuitionEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS("QmYTz3GW3Xho27ZY8WgN8By4i1DwmkKCeGCJCKnBcKX16k");
+                             var tuitionMetadata = JsonConvert.DeserializeObject<TuitionMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
+                                 await scopedProcessingService.CreateNewTuition(new TuitionDTO
+                                 {
+                                     ChainNetwork = chainNetworkId,
+                                     Img = tuitionMetadata.Img,
+                                     TuitionName = tuitionMetadata.Name,
+                                     TuitionAddress = decoded.Log.Address,
+                                     TuitionDescription = tuitionMetadata.Description,
+                                     TuitionHashIPFS = decoded.Event.UrlMetadata,
+                                     SchoolYear = DateTime.Now.Year,
+                                     StartTime = tuitionMetadata.StartTime,
+                                     EndTime = tuitionMetadata.EndTime,
+                                     TokenAmount = long.Parse(tuitionMetadata.AmountToken),
+                                     CurrencyAmount = long.Parse(tuitionMetadata.AmountCurency),
+                                     LecturerInCharge = tuitionMetadata.LecturerInCharge
+                                 });
+                             }
                              _logger.LogInformation($"Listening Add New Tuition {decoded.Log.Address}");
-                             //await AddNewTuitionIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Tuition Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -91,93 +132,110 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewScholarshipEventDTO> decoded = Event<NewScholarshipEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
+                             var metadata = JsonConvert.DeserializeObject<ScholarshipMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
+                                 await scopedProcessingService.CreateNewScholarship(new Core.ScholarshipServices.DTOs.ScholarshipDTO
+                                 {
+                                     ChainNetworkId = chainNetworkId,
+                                     ScholarshipName = metadata.Name,
+                                     ScholarshipAddress = decoded.Log.Address,
+                                     ScholarShipDescription = metadata.Description,
+                                     ScholarshipHashIPFS = decoded.Event.UrlMetadata,
+                                     StartTime = metadata.StartTime,
+                                     EndTime = metadata.EndTime,
+                                     TokenAmount = long.Parse(metadata.Award),
+                                     LecturerInCharge = metadata.LecturerInCharge
+                                 });
+                             }
                              _logger.LogInformation($"Listening Add New Scholarship {decoded.Log.Address}");
-                             //await AddNewScholarshipIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Scholarship Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
             await subscription.SubscribeAsync(filter);
         }
 
-        private async Task ListenNewSubjectEvent(StreamingWebSocketClient client)
-        {
-            var filter = web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
-            var subscription = new EthLogsObservableSubscription(client);
-            subscription.GetSubscriptionDataResponsesAsObservable().
-                         Subscribe(async log =>
-                         {
-                             EventLog<NewSubjectEventDTO> decoded = Event<NewSubjectEventDTO>.DecodeEvent(log);
-                             _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
-                             //await AddNewSubjectIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                         });
+        /* private async Task ListenNewSubjectEvent(StreamingWebSocketClient client)
+         {
+             var filter = web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
+             var subscription = new EthLogsObservableSubscription(client);
+             subscription.GetSubscriptionDataResponsesAsObservable().
+                          Subscribe(async log =>
+                          {
+                              EventLog<NewSubjectEventDTO> decoded = Event<NewSubjectEventDTO>.DecodeEvent(log);
+                              _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
+                              //await AddNewSubjectIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                          });
 
-            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Subject Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-            await subscription.SubscribeAsync(filter);
-        }
+             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Subject Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+             await subscription.SubscribeAsync(filter);
+         }
 
-        private async Task ListenNewMissionEvent(StreamingWebSocketClient client)
-        {
-            var filter = web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
-            var subscription = new EthLogsObservableSubscription(client);
-            subscription.GetSubscriptionDataResponsesAsObservable().
-                         Subscribe(async log =>
-                         {
-                             EventLog<NewMissionEventDTO> decoded = Event<NewMissionEventDTO>.DecodeEvent(log);
-                             _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
-                             //await AddNewMissionIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                         });
+         private async Task ListenNewMissionEvent(StreamingWebSocketClient client)
+         {
+             var filter = web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
+             var subscription = new EthLogsObservableSubscription(client);
+             subscription.GetSubscriptionDataResponsesAsObservable().
+                          Subscribe(async log =>
+                          {
+                              EventLog<NewMissionEventDTO> decoded = Event<NewMissionEventDTO>.DecodeEvent(log);
+                              _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
+                              //await AddNewMissionIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                          });
 
-            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Mission Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-            await subscription.SubscribeAsync(filter);
-        }
+             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Mission Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+             await subscription.SubscribeAsync(filter);
+         }
 
-        private async Task ListenUpdateStudentInfoEvent(StreamingWebSocketClient client)
-        {
-            var filter = web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-            var subscription = new EthLogsObservableSubscription(client);
-            subscription.GetSubscriptionDataResponsesAsObservable().
-                         Subscribe(async log =>
-                         {
-                             EventLog<UpdateStudentInfoEventDTO> decoded = Event<UpdateStudentInfoEventDTO>.DecodeEvent(log);
-                             _logger.LogInformation($"Listening Update Student Info {decoded.Event.StudentAddr}");
-                             //await UpdateStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                         });
+         private async Task ListenUpdateStudentInfoEvent(StreamingWebSocketClient client)
+         {
+             var filter = web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+             var subscription = new EthLogsObservableSubscription(client);
+             subscription.GetSubscriptionDataResponsesAsObservable().
+                          Subscribe(async log =>
+                          {
+                              EventLog<UpdateStudentInfoEventDTO> decoded = Event<UpdateStudentInfoEventDTO>.DecodeEvent(log);
+                              _logger.LogInformation($"Listening Update Student Info {decoded.Event.StudentAddr}");
+                              //await UpdateStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                          });
 
-            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-            await subscription.SubscribeAsync(filter);
-        }
+             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+             await subscription.SubscribeAsync(filter);
+         }
 
-        private async Task ListenAddLecturerEvent(StreamingWebSocketClient client)
-        {
-            var filter = web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-            var subscription = new EthLogsObservableSubscription(client);
-            subscription.GetSubscriptionDataResponsesAsObservable().
-                         Subscribe(async log =>
-                         {
-                             EventLog<AddLecturerInfoEventDTO> decoded = Event<AddLecturerInfoEventDTO>.DecodeEvent(log);
-                             _logger.LogInformation($"Listening Add Lecturer Info {decoded.Event.LecturerAddr}");
-                             //await AddNewLecturerIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                         });
+         private async Task ListenAddLecturerEvent(StreamingWebSocketClient client)
+         {
+             var filter = web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+             var subscription = new EthLogsObservableSubscription(client);
+             subscription.GetSubscriptionDataResponsesAsObservable().
+                          Subscribe(async log =>
+                          {
+                              EventLog<AddLecturerInfoEventDTO> decoded = Event<AddLecturerInfoEventDTO>.DecodeEvent(log);
+                              _logger.LogInformation($"Listening Add Lecturer Info {decoded.Event.LecturerAddr}");
+                              //await AddNewLecturerIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                          });
 
-            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddLecturerInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-            await subscription.SubscribeAsync(filter);
-        }
+             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddLecturerInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+             await subscription.SubscribeAsync(filter);
+         }
 
-        private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
-        {
-            var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-            var subscription = new EthLogsObservableSubscription(client);
-            subscription.GetSubscriptionDataResponsesAsObservable().
-                         Subscribe(async log =>
-                         {
-                             EventLog<AddStudentInfoEventDTO> decoded = Event<AddStudentInfoEventDTO>.DecodeEvent(log);
-                             _logger.LogInformation($"Listening Add Student Info {decoded.Event.StudentAddr}");
-                             //await AddNewStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                         });
+         private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
+         {
+             var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+             var subscription = new EthLogsObservableSubscription(client);
+             subscription.GetSubscriptionDataResponsesAsObservable().
+                          Subscribe(async log =>
+                          {
+                              EventLog<AddStudentInfoEventDTO> decoded = Event<AddStudentInfoEventDTO>.DecodeEvent(log);
+                              _logger.LogInformation($"Listening Add Student Info {decoded.Event.StudentAddr}");
+                              //await AddNewStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                          });
 
-            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddStudentInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-            await subscription.SubscribeAsync(filter);
-        }
+             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddStudentInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+             await subscription.SubscribeAsync(filter);
+         }*/
 
         private async Task PingAliveWS(StreamingWebSocketClient client, CancellationToken stoppingToken)
         {
@@ -207,7 +265,7 @@ namespace KLTN.ManagerPoolListen
                 await Task.Delay(15000, stoppingToken);
             }
         }
-
+        /*
         private async Task ListenActiveMissionContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -251,7 +309,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Register Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -271,7 +329,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Cancel Register Mission Event successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -292,7 +350,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Confirm Mission Event successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -313,7 +371,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.UpdateUnconfirmToDatabase(/*parameter*/);
+                                 await scopedProcessingService.UpdateUnconfirmToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Unconfirm Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -334,7 +392,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.CloseMission(/*parameter*/);
+                                 await scopedProcessingService.CloseMission(*//*parameter*//*);
                                  _logger.LogInformation("Close Mission successfully with Contract: " + missionContractAddress);
                                  await subScriptionRegister.UnsubscribeAsync();
                                  await subscriptionCancelRegister.UnsubscribeAsync();
@@ -421,7 +479,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Register Subject successfully with Contract: " + contractAddress);
                              }
                          }
@@ -441,7 +499,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Cancel Register Subject Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -462,7 +520,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Confirm Subject Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -483,7 +541,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 await scopedProcessingService.UpdateUnconfirmToDatabase(/*parameter*/);
+                                 await scopedProcessingService.UpdateUnconfirmToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Unconfirm Subject successfully with Contract: " + contractAddress);
                              }
                          }
@@ -504,7 +562,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 await scopedProcessingService.CloseMission(/*parameter*/);
+                                 await scopedProcessingService.CloseMission(*//*parameter*//*);
                                  _logger.LogInformation("Close Subject successfully with Contract: " + contractAddress);
                                  await subScriptionRegister.UnsubscribeAsync();
                                  await subscriptionCancelRegister.UnsubscribeAsync();
@@ -589,7 +647,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Add Student To Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -609,7 +667,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Remove Student From Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -630,7 +688,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 await scopedProcessingService.CloseScholarship(/*parameter*/);
+                                 await scopedProcessingService.CloseScholarship(*//*parameter*//*);
                                  _logger.LogInformation("Close Subject successfully with Contract: " + contractAddress);
                                  await subScriptionAddStudentToScholarship.UnsubscribeAsync();
                                  await subscriptionRemoveStudentFromScholarship.UnsubscribeAsync();
@@ -706,7 +764,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Add Student To Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -726,7 +784,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Remove Student From Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -746,7 +804,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(/*parameter*/);
+                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
                                  _logger.LogInformation("Store Payment Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -767,7 +825,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 await scopedProcessingService.CloseTuition(/*parameter*/);
+                                 await scopedProcessingService.CloseTuition(*//*parameter*//*);
                                  _logger.LogInformation("Close Tuition successfully with Contract: " + contractAddress);
                                  await subScriptionAddStudentToTuition.UnsubscribeAsync();
                                  await subscriptionRemoveStudentFromTuition.UnsubscribeAsync();
@@ -805,6 +863,6 @@ namespace KLTN.ManagerPoolListen
             {
                 _logger.LogError(ex, "Follow Tuition Contract Async exception: ");
             }
-        }
+        }*/
     }
 }

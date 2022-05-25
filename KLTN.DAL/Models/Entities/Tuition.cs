@@ -12,6 +12,8 @@ namespace KLTN.DAL.Models.Entities
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
+        public int ChainNetwork { get; set; }
+        public string ImgURL { get; set; }
         public string TuitionName { get; set; }
         public string TuitionAddress { get; set; }
         public string TuitionStatus { get; set; }
@@ -21,6 +23,8 @@ namespace KLTN.DAL.Models.Entities
         public long StartTime { get; set; }
         public long EndTime { get; set; }
         public long TokenAmount { get; set; }
+        public long CurrencyAmount { get; set; }
+        public string LecturerInCharge { get; set; }
         public int JoinedStudentAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
     }

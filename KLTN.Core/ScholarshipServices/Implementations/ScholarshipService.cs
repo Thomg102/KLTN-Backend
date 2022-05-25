@@ -43,11 +43,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 {
                     ScholarshipName = scholarship.ScholarshipName,
                     ScholarshipStatus = scholarship.ScholarshipStatus,
-                    DepartmentName = scholarship.DepartmentName,
                     StartTime = scholarship.StartTime,
                     EndTime = scholarship.EndTime,
-                    EndTimeToResigter = scholarship.EndTimeToResigter,
-                    EndTimeToComFirm = scholarship.EndTimeToComFirm,
                     JoinedStudentAmount = scholarship.JoinedStudentAmount,
                     LecturerName = scholarship.LecturerName,
                     TokenAmount = scholarship.TokenAmount,
@@ -77,8 +74,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 var result = new List<StudentScholarshipResponseDTO>();
                 var studentDepartment = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().DepartmentName;
                 var joinedScholarships = _scholarship.Find<Scholarship>(_ => true).ToList();
-                if (studentAddress != null)
-                    joinedScholarships = _scholarship.Find<Scholarship>(x => x.DepartmentName.ToLower() == studentDepartment.ToLower()).ToList();
+                /* if (studentAddress != null)
+                     joinedScholarships = _scholarship.Find<Scholarship>(x => x.DepartmentName.ToLower() == studentDepartment.ToLower()).ToList();*/
                 foreach (var joinedScholarship in joinedScholarships)
                 {
                     var isExistedJoinedStudent = false;
@@ -129,7 +126,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 var joinedScholarship = _scholarship.Find<Scholarship>(_ => true).ToList();
                 foreach (var joinedSubject in joinedScholarship)
                 {
-                    if (joinedSubject.LecturerAddress.ToLower() == lecturerAddress.ToLower())
+                    if (joinedSubject.LecturerInCharge.ToLower() == lecturerAddress.ToLower())
                         result.Add(new LecturerScholarshipResponseDTO()
                         {
                             ScholarshipName = joinedSubject.ScholarshipName,
@@ -154,16 +151,15 @@ namespace KLTN.Core.ScholarshipServices.Implementations
             {
                 await _scholarship.InsertOneAsync(new Scholarship()
                 {
+                    ChainNetworkId = scholarship.ChainNetworkId,
                     ScholarshipName = scholarship.ScholarshipName,
                     ScholarshipAddress = scholarship.ScholarshipAddress,
                     ScholarshipStatus = Status.Opening.ToString(),
                     ScholarshipHashIPFS = scholarship.ScholarshipHashIPFS,
-                    DepartmentName = scholarship.DepartmentName,
+                    ScholarShipDescription = scholarship.ScholarShipDescription,
                     StartTime = scholarship.StartTime,
                     EndTime = scholarship.EndTime,
-                    EndTimeToResigter = scholarship.EndTimeToResigter,
-                    EndTimeToComFirm = scholarship.EndTimeToComFirm,
-                    LecturerAddress = scholarship.LecturerAddress,
+                    LecturerInCharge = scholarship.LecturerInCharge,
                     LecturerName = scholarship.LecturerName,
                     TokenAmount = scholarship.TokenAmount
                 });

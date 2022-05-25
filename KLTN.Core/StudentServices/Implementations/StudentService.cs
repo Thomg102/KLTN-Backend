@@ -104,7 +104,7 @@ namespace KLTN.Core.StudentServices.Implementations
                             {
                                 HistoryName = scholarship.ScholarshipName,
                                 Amount = scholarship.TokenAmount,
-                                SubmitTime = scholarship.EndTimeToComFirm
+                                //SubmitTime = scholarship.EndTimeToComFirm
                             });
                             break;
                         }

@@ -124,6 +124,8 @@ namespace KLTN.Core.TuitionServices.Implementations
             {
                 await _tuition.InsertOneAsync(new Tuition()
                 {
+                    ChainNetwork = tuition.ChainNetwork,
+                    ImgURL = tuition.Img,
                     TuitionName = tuition.TuitionName,
                     TuitionAddress = tuition.TuitionAddress,
                     TuitionDescription = tuition.TuitionDescription,
@@ -132,7 +134,9 @@ namespace KLTN.Core.TuitionServices.Implementations
                     SchoolYear = tuition.SchoolYear,
                     StartTime = tuition.StartTime,
                     EndTime = tuition.EndTime,
-                    TokenAmount = tuition.TokenAmount
+                    TokenAmount = tuition.TokenAmount,
+                    CurrencyAmount = tuition.CurrencyAmount,
+                    LecturerInCharge = tuition.LecturerInCharge,
                 });
             }
             catch (Exception ex)
