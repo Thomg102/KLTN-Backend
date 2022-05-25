@@ -1,6 +1,8 @@
 using KLTN.Common.Models;
+using KLTN.Common.Models.AppSettingModels;
 using KLTN.Core.MissionServices.Implementations;
 using KLTN.Core.MissionServices.Interfaces;
+using KLTN.DAL;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -34,6 +36,14 @@ namespace KLTN.ManagerPoolListen
             });
             var configuration = Configuration.Get<ListenMangerPoolAppSettings>();
             ListenMangerPoolAppSettings.SetValue(configuration);
+
+            services.Configure<Mongosettings>(options =>
+            {
+                options.Connection = configuration.ConnectionString;
+                options.DatabaseName = configuration.DatabaseName;
+            });
+
+            services.AddScoped<IMongoDbContext, MongoDbContext>();
 
             services.AddScoped<IMissionService, MissionService>();
 

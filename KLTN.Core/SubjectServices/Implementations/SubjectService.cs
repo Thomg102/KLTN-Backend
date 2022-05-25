@@ -3,6 +3,7 @@ using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,19 +20,15 @@ namespace KLTN.Core.SubjectServices.Implementations
     public class SubjectService : ISubjectService
     {
         private readonly ILogger<SubjectService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Subject> _subject;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public SubjectService(ILogger<SubjectService> logger, IOptions<WebAPIAppSettings> settings)
+        public SubjectService(ILogger<SubjectService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
+            _context = context;
 
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _subject = database.GetCollection<Subject>(_settings.SubjectCollectionName);
+            _subject = _context.GetCollection<Subject>(typeof(Subject).Name);
         }
 
         // Get detail of specific subject Student/Lecturer/Admin

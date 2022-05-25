@@ -3,6 +3,7 @@ using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.StudentServices.DTOs;
 using KLTN.Core.StudentServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
@@ -21,27 +22,23 @@ namespace KLTN.Core.StudentServices.Implementations
     public class StudentService : IStudentService
     {
         private readonly ILogger<StudentService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Mission> _mission;
         private readonly IMongoCollection<Scholarship> _scholarship;
         private readonly IMongoCollection<Tuition> _tuition;
         private readonly IMongoCollection<Student> _student;
         private readonly IMongoCollection<Subject> _subject;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public StudentService(ILogger<StudentService> logger, IOptions<WebAPIAppSettings> settings)
+        public StudentService(ILogger<StudentService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
+            _context = context;
 
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _student = database.GetCollection<Student>(_settings.StudentCollectionName);
-            _mission = database.GetCollection<Mission>(_settings.MissionCollectionName);
-            _scholarship = database.GetCollection<Scholarship>(_settings.ScholarshipCollectionName);
-            _tuition = database.GetCollection<Tuition>(_settings.TuitionCollectionName);
-            _subject = database.GetCollection<Subject>(_settings.SubjectCollectionName);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
+            _mission = _context.GetCollection<Mission>(typeof(Mission).Name);
+            _scholarship = _context.GetCollection<Scholarship>(typeof(Scholarship).Name);
+            _tuition = _context.GetCollection<Tuition>(typeof(Tuition).Name);
+            _subject = _context.GetCollection<Subject>(typeof(Subject).Name);
         }
 
         // Get detail info of specific Student

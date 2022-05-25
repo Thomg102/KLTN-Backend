@@ -3,6 +3,7 @@ using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,21 +20,17 @@ namespace KLTN.Core.TuitionServices.Implementations
     public class TuitionService : ITuitionService
     {
         private readonly ILogger<TuitionService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Tuition> _tuition;
         private readonly IMongoCollection<Student> _student;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public TuitionService(ILogger<TuitionService> logger, IOptions<WebAPIAppSettings> settings)
+        public TuitionService(ILogger<TuitionService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
+            _context = context;
 
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _tuition = database.GetCollection<Tuition>(_settings.TuitionCollectionName);
-            _student = database.GetCollection<Student>(_settings.StudentCollectionName);
+            _tuition = _context.GetCollection<Tuition>(typeof(Tuition).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
         }
 
         // Get detail of specific tuition Student/Admin

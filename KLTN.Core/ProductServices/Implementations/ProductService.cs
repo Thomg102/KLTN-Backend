@@ -2,6 +2,7 @@
 using KLTN.Common.Models;
 using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.ProductServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,26 +18,19 @@ namespace KLTN.Core.ProductServices.Implementations
     public class ProductService : IProductService
     {
         private readonly ILogger<ProductService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<ProductOnSale> _product;
         private readonly IMongoCollection<ProductType> _productType;
         private readonly IMongoCollection<Student> _student;
-        private string _adminAddress;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public ProductService(ILogger<ProductService> logger, IOptions<WebAPIAppSettings> settings)
+        public ProductService(ILogger<ProductService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
+            _context = context;
 
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _product = database.GetCollection<ProductOnSale>(_settings.ProductCollectionName);
-            _student = database.GetCollection<Student>(_settings.StudentCollectionName);
-            _productType = database.GetCollection<ProductType>(_settings.ProductTypeCollectionName);
-
-            _adminAddress = _settings.AdminAddress;
+            _product = _context.GetCollection<ProductOnSale>(typeof(ProductOnSale).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
+            _productType = _context.GetCollection<ProductType>(typeof(ProductType).Name);
         }
 
         // Get list of Student product 
@@ -95,7 +89,7 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get detail of specific product on sale Student/Admin
-        public ProductDetailResponseDTO GetDetailOfProductOnSale(string productId, string studentAddress)
+        public ProductDetailResponseDTO GetDetailOfProductOnSale(string productId, string studentAddress, string _adminAddress)
         {
             try
             {
@@ -124,7 +118,7 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get list of product On sale Student/Admin
-        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress)
+        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress, string _adminAddress)
         {
             try
             {
@@ -163,15 +157,15 @@ namespace KLTN.Core.ProductServices.Implementations
                 var productList = _product.Find<ProductOnSale>(_ => true).ToList();
                 if (productList != null && productList.Count > 0)
                     foreach (var product in productList)
-                    result.Add(new ProductDetailResponseDTO()
-                    {
-                        ProductName = product.ProductName,
-                        ProductId = product.ProductId,
-                        ProductDescription = product.ProductDescription,
-                        ProductHahIPFS = product.ProductHahIPFS,
-                        Amount = product.AmountOnSale,
-                        ProductTypeName = product.ProductTypeName,
-                    });
+                        result.Add(new ProductDetailResponseDTO()
+                        {
+                            ProductName = product.ProductName,
+                            ProductId = product.ProductId,
+                            ProductDescription = product.ProductDescription,
+                            ProductHahIPFS = product.ProductHahIPFS,
+                            Amount = product.AmountOnSale,
+                            ProductTypeName = product.ProductTypeName,
+                        });
                 return result;
             }
             catch (Exception ex)
@@ -215,7 +209,7 @@ namespace KLTN.Core.ProductServices.Implementations
                     PriceOfOneItem = product.PriceOfOneItem,
                     ProductTypeName = product.ProductTypeName,
                     ProductDescription = product.ProductDescription,
-                    SaleAddress = _adminAddress
+                    SaleAddress = product.SaleAddress
                 });
             }
             catch (Exception ex)

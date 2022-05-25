@@ -3,6 +3,7 @@ using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Core.ScholarshipServices.DTOs;
 using KLTN.Core.ScholarshipServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,21 +20,17 @@ namespace KLTN.Core.ScholarshipServices.Implementations
     public class ScholarshipService : IScholarshipService
     {
         private readonly ILogger<ScholarshipService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Scholarship> _scholarship;
         private readonly IMongoCollection<Student> _student;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public ScholarshipService(ILogger<ScholarshipService> logger, IOptions<WebAPIAppSettings> settings)
+        public ScholarshipService(ILogger<ScholarshipService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
+            _context = context;
 
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _scholarship = database.GetCollection<Scholarship>(_settings.ScholarshipCollectionName);
-            _student = database.GetCollection<Student>(_settings.StudentCollectionName);
+            _scholarship = _context.GetCollection<Scholarship>(typeof(Scholarship).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
         }
 
         // Get detail of specific scholarship Student/Lecturer/Admin

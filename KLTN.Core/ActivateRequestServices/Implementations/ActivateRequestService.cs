@@ -3,6 +3,7 @@ using KLTN.Common.Models;
 using KLTN.Core.ActivateRequestServices.DTOs;
 using KLTN.Core.ActiveRequestServices.DTOs;
 using KLTN.Core.RequestActiveServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,21 +19,16 @@ namespace KLTN.Core.RequestActiveServices.Implementations
     public class ActivateRequestService : IActivateRequestService
     {
         private readonly ILogger<ActivateRequestService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<ActivateRequest> _activateRequest;
         private readonly IMongoCollection<Student> _student;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public ActivateRequestService(ILogger<ActivateRequestService> logger, IOptions<WebAPIAppSettings> settings)
+        public ActivateRequestService(ILogger<ActivateRequestService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
-
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _activateRequest = database.GetCollection<ActivateRequest>(_settings.ActivateRequestCollectionName);
-            _student = database.GetCollection<Student>(_settings.StudentCollectionName);
+            _context = context;
+            _activateRequest = _context.GetCollection<ActivateRequest>(typeof(ActivateRequest).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
         }
 
         // Get list of Activate requesting Student/Admin

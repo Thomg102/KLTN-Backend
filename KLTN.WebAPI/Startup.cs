@@ -1,4 +1,5 @@
 using KLTN.Common.Models;
+using KLTN.Common.Models.AppSettingModels;
 using KLTN.Core.DepartmentServices.Implementations;
 using KLTN.Core.DepartmentServices.Interfaces;
 using KLTN.Core.LecturerServicess.Implementations;
@@ -17,6 +18,7 @@ using KLTN.Core.SubjectServices.Implementations;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.Core.TuitionServices.Implementations;
 using KLTN.Core.TuitionServices.Interfaces;
+using KLTN.DAL;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -57,6 +59,13 @@ namespace KLTN.WebAPI
             var configurationSetting = Configuration.Get<WebAPIAppSettings>();
             WebAPIAppSettings.SetValue(configurationSetting);
 
+            services.Configure<Mongosettings>(options =>
+            {
+                options.Connection = configurationSetting.ConnectionString;
+                options.DatabaseName = configurationSetting.DatabaseName;
+            });
+
+            services.AddScoped<IMongoDbContext, MongoDbContext>();
             services.AddScoped<ITuitionService, TuitionService>();
             services.AddScoped<ISubjectService, SubjectService>();
             services.AddScoped<IStudentService, StudentService>();

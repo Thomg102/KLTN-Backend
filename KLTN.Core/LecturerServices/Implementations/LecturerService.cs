@@ -3,6 +3,7 @@ using KLTN.Common.Models;
 using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,18 +20,14 @@ namespace KLTN.Core.LecturerServicess.Implementations
     public class LecturerService : ILecturerService
     {
         private readonly ILogger<LecturerService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Lecturer> _lecturer;
 
-        private readonly WebAPIAppSettings _settings;
-        public LecturerService(ILogger<LecturerService> logger, IOptions<WebAPIAppSettings> settings)
+        public LecturerService(ILogger<LecturerService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
-
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _lecturer = database.GetCollection<Lecturer>(_settings.LecturerCollectionName);
+            _context = context;
+            _lecturer = _context.GetCollection<Lecturer>(typeof(Lecturer).Name);
         }
 
         // Get detail info of specific Lecturer

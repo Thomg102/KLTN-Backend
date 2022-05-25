@@ -1,4 +1,5 @@
 ﻿using KLTN.Common.Exceptions;
+using KLTN.Common.Models;
 using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.ProductServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -38,14 +39,14 @@ namespace KLTN.WebAPI.Controllers
         [HttpGet("product-on-sale/{productId}")]
         public JsonResult GetDetailOfProductOnSale(string productId, [FromQuery] string studentAddress)
         {
-            var result = _productService.GetDetailOfProductOnSale(productId, studentAddress);
+            var result = _productService.GetDetailOfProductOnSale(productId, studentAddress, WebAPIAppSettings.Value.AdminAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 
         [HttpGet("product-on-sale")]
         public JsonResult GetListOfProductOnSale([FromQuery] string studentAddress)
         {
-            var result = _productService.GetListOfProductOnSale(studentAddress);
+            var result = _productService.GetListOfProductOnSale(studentAddress, WebAPIAppSettings.Value.AdminAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 

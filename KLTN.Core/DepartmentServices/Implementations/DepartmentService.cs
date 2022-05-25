@@ -2,6 +2,7 @@
 using KLTN.Common.Models;
 using KLTN.Core.DepartmentServices.DTOs;
 using KLTN.Core.DepartmentServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -18,18 +19,13 @@ namespace KLTN.Core.DepartmentServices.Implementations
     public class DepartmentService : IDepartmentService
     {
         private readonly ILogger<DepartmentService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Department> _department;
-
-        private readonly WebAPIAppSettings _settings;
-        public DepartmentService(ILogger<DepartmentService> logger, IOptions<WebAPIAppSettings> settings)
+        public DepartmentService(ILogger<DepartmentService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
-
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _department = database.GetCollection<Department>(_settings.DepartmentCollectionName);
+            _context = context;
+            _department = _context.GetCollection<Department>(typeof(Department).Name);
         }
 
         // Get list subjects of specific Department

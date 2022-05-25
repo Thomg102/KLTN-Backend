@@ -1,9 +1,11 @@
 ﻿using KLTN.Common.Exceptions;
+using KLTN.Common.Models;
 using KLTN.Core.DepartmentServices.DTOs;
 using KLTN.Core.DepartmentServices.Interfaces;
 using KLTN.DAL.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Threading.Tasks;
 using WebAPI.Models;
 using WebAPI.Utils.Constants;
@@ -32,6 +34,7 @@ namespace KLTN.WebAPI.Controllers
         [HttpGet("")]
         public JsonResult GetAllDepartment()
         {
+            Console.WriteLine(WebAPIAppSettings.Value.AdminAddress);
             var result = _departmentService.GetAllDepartment();
             return new JsonResult(new SuccessResponseModel(result));
         }

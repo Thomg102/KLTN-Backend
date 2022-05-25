@@ -8,6 +8,7 @@ namespace KLTN.Common.Models
     {
         public static ListenMangerPoolAppSettings Value { get; private set; }
         public string ConnectionString { get; set; }
+        public string DatabaseName { get; set; }
         public string RpcUrl { get; set; }
         public string WssUrl { get; set; }
         public int ChainNetworkId { get; set; }

@@ -13,5 +13,6 @@ namespace KLTN.Core.ProductServices.DTOs
         public long PriceOfOneItem { get; set; }
         public string ProductTypeName { get; set; }
         public string ProductDescription { get; set; }
+        public string SaleAddress { get; set; }
     }
 }

@@ -14,27 +14,23 @@ using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 using KLTN.DAL.Models.DTOs;
 using KLTN.Common.Enums;
+using KLTN.DAL;
 
 namespace KLTN.Core.MissionServices.Implementations
 {
     public class MissionService : IMissionService
     {
         private readonly ILogger<MissionService> _logger;
+        private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Mission> _mission;
         private readonly IMongoCollection<MissionType> _missionType;
 
-        private readonly WebAPIAppSettings _settings;
-
-        public MissionService(ILogger<MissionService> logger, IOptions<WebAPIAppSettings> settings)
+        public MissionService(ILogger<MissionService> logger, IMongoDbContext context)
         {
             _logger = logger;
-            _settings = settings.Value;
-
-            var client = new MongoClient(_settings.ConnectionString);
-            var database = client.GetDatabase(_settings.DatabaseName);
-
-            _mission = database.GetCollection<Mission>(_settings.MissionCollectionName);
-            _missionType = database.GetCollection<MissionType>(_settings.MissionTypeCollectionName);
+            _context = context;
+            _mission = _context.GetCollection<Mission>(typeof(Mission).Name);
+            _missionType = _context.GetCollection<MissionType>(typeof(MissionType).Name);
         }
 
         // Get detail of specific mission Student/Lecturer/Admin
