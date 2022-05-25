@@ -1,8 +1,10 @@
 using KLTN.Common.Models;
 using KLTN.Common.SmartContracts.Events;
 using KLTN.Common.Utilities.Constants;
+using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.Core.MissionServices.Interfaces;
 using KLTN.Core.ScholarshipServices.Interfaces;
+using KLTN.Core.StudentServices.Interfaces;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
@@ -52,11 +54,11 @@ namespace KLTN.ManagerPoolListen
                 {
                     _logger.LogInformation("Application start ");
                     await client.StartAsync();
-                    /*           await ListenAddStudentEvent(client);
-                               await ListenAddLecturerEvent(client);
-                               await ListenUpdateStudentInfoEvent(client);
-                               await ListenNewMissionEvent(client);
-                               await ListenNewSubjectEvent(client);*/
+                    await ListenAddStudentEvent(client);
+                    await ListenAddLecturerEvent(client);
+                    await ListenUpdateStudentInfoEvent(client);
+                    await ListenNewMissionEvent(client);
+                    await ListenNewSubjectEvent(client);
                     await ListenNewScholarshipEvent(client);
                     await ListenNewTuitionEvent(client);
                     /*                 _ = ListenActiveMissionContract(client);
@@ -157,85 +159,172 @@ namespace KLTN.ManagerPoolListen
             await subscription.SubscribeAsync(filter);
         }
 
-        /* private async Task ListenNewSubjectEvent(StreamingWebSocketClient client)
-         {
-             var filter = web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
-             var subscription = new EthLogsObservableSubscription(client);
-             subscription.GetSubscriptionDataResponsesAsObservable().
-                          Subscribe(async log =>
-                          {
-                              EventLog<NewSubjectEventDTO> decoded = Event<NewSubjectEventDTO>.DecodeEvent(log);
-                              _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
-                              //await AddNewSubjectIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                          });
+        private async Task ListenNewSubjectEvent(StreamingWebSocketClient client)
+        {
+            var filter = web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                         Subscribe(async log =>
+                         {
+                             EventLog<NewSubjectEventDTO> decoded = Event<NewSubjectEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
+                             var metadata = JsonConvert.DeserializeObject<SubjectMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
+                                 await scopedProcessingService.CreateNewSubject(new Core.SubjectServices.DTOs.SubjectDTO
+                                 {
+                                     ChainNetworkId = chainNetworkId,
+                                     SubjectName = metadata.Name,
+                                     SubjectAddress = decoded.Log.Address,
+                                     SubjectShortenName = metadata.ShortName,
+                                     SubjectImg = metadata.Img,
+                                     SubjectDescription = metadata.Description,
+                                     SubjectHashIPFS = decoded.Event.UrlMetadata,
+                                     DepartmentName = metadata.Faculty,
+                                     StartTime = metadata.StartTime,
+                                     EndTime = metadata.EndTime,
+                                     EndTimeToResigter = metadata.EndTimeToRegister,
+                                     EndTimeToComFirm = metadata.EndTimeToConfirm,
+                                     MaxStudentAmount = int.Parse(metadata.MaxEntrant),
+                                     LecturerAddress = metadata.LecturerInCharge
+                                 });
+                             }
+                             _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
+                         });
 
-             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Subject Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-             await subscription.SubscribeAsync(filter);
-         }
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Subject Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
 
-         private async Task ListenNewMissionEvent(StreamingWebSocketClient client)
-         {
-             var filter = web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
-             var subscription = new EthLogsObservableSubscription(client);
-             subscription.GetSubscriptionDataResponsesAsObservable().
-                          Subscribe(async log =>
-                          {
-                              EventLog<NewMissionEventDTO> decoded = Event<NewMissionEventDTO>.DecodeEvent(log);
-                              _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
-                              //await AddNewMissionIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                          });
+        private async Task ListenNewMissionEvent(StreamingWebSocketClient client)
+        {
+            var filter = web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                         Subscribe(async log =>
+                         {
+                             EventLog<NewMissionEventDTO> decoded = Event<NewMissionEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
+                             var metadata = JsonConvert.DeserializeObject<MissionMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
+                                 await scopedProcessingService.CreateNewMission(new Core.MissionServices.DTOs.MissionDTO
+                                 {
+                                     ChainNetworkId = chainNetworkId,
+                                     MissionName = metadata.Name,
+                                     MissionAddress = decoded.Log.Address,
+                                     MissionShortenName = metadata.ShortName,
+                                     MissionImg = metadata.Img,
+                                     MissionDescription = metadata.Description,
+                                     MissionHashIPFS = decoded.Event.UrlMetadata,
+                                     DepartmentName = metadata.Faculty,
+                                     StartTime = metadata.StartTime,
+                                     EndTime = metadata.EndTime,
+                                     EndTimeToResigter = metadata.EndTimeToRegister,
+                                     EndTimeToComFirm = metadata.EndTimeToConfirm,
+                                     MaxStudentAmount = int.Parse(metadata.MaxEntrant),
+                                     LecturerAddress = metadata.LecturerInCharge,
+                                     TokenAmount = long.Parse(metadata.Award),
+                                     LecturerName = metadata.LecturerName
+                                 });
+                             }
+                             _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
+                         });
 
-             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Mission Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-             await subscription.SubscribeAsync(filter);
-         }
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Mission Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
 
-         private async Task ListenUpdateStudentInfoEvent(StreamingWebSocketClient client)
-         {
-             var filter = web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-             var subscription = new EthLogsObservableSubscription(client);
-             subscription.GetSubscriptionDataResponsesAsObservable().
-                          Subscribe(async log =>
-                          {
-                              EventLog<UpdateStudentInfoEventDTO> decoded = Event<UpdateStudentInfoEventDTO>.DecodeEvent(log);
-                              _logger.LogInformation($"Listening Update Student Info {decoded.Event.StudentAddr}");
-                              //await UpdateStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                          });
+        private async Task ListenAddLecturerEvent(StreamingWebSocketClient client)
+        {
+            var filter = web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                         Subscribe(async log =>
+                         {
+                             EventLog<AddLecturerInfoEventDTO> decoded = Event<AddLecturerInfoEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.HashInfo);
+                             var metadata = JsonConvert.DeserializeObject<LecturerMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ILecturerService>();
+                                 await scopedProcessingService.CreateNewLectuter(new Core.LecturerServices.DTOs.LecturerDTO
+                                 {
+                                     LecturerName = metadata.Name,
+                                     LecturerId = metadata.LecturerId,
+                                     LecturerAddress = decoded.Event.LecturerAddr,
+                                     DepartmentName = metadata.Faculty,
+                                     DepartmentShortenName = metadata.FacultyShortName,
+                                     Sex = metadata.Gender,
+                                     DateOfBirth = metadata.DateOfBirth,
+                                     LecturerHashIPFS = decoded.Event.HashInfo
+                                 });
+                             }
+                             _logger.LogInformation($"Listening Add Lecturer Info {decoded.Event.LecturerAddr}");
+                         });
 
-             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-             await subscription.SubscribeAsync(filter);
-         }
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddLecturerInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
 
-         private async Task ListenAddLecturerEvent(StreamingWebSocketClient client)
-         {
-             var filter = web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-             var subscription = new EthLogsObservableSubscription(client);
-             subscription.GetSubscriptionDataResponsesAsObservable().
-                          Subscribe(async log =>
-                          {
-                              EventLog<AddLecturerInfoEventDTO> decoded = Event<AddLecturerInfoEventDTO>.DecodeEvent(log);
-                              _logger.LogInformation($"Listening Add Lecturer Info {decoded.Event.LecturerAddr}");
-                              //await AddNewLecturerIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                          });
+        private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
+        {
+            var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                         Subscribe(async log =>
+                         {
+                             EventLog<AddStudentInfoEventDTO> decoded = Event<AddStudentInfoEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.HashInfo);
+                             var metadata = JsonConvert.DeserializeObject<StudentMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IStudentService>();
+                                 await scopedProcessingService.CreateNewStudent(new Core.StudentServices.DTOs.StudentDTO
+                                 {
+                                     StudentName = metadata.Name,
+                                     StudentId = metadata.StudentId,
+                                     StudentAddress = decoded.Event.StudentAddr,
+                                     MajorName = metadata.Major,
+                                     ClassroomName = metadata.Class,
+                                     DepartmentName = metadata.Faculty,
+                                     DepartmentShortenName = metadata.FacultyShortName,
+                                     SchoolYear = int.Parse(metadata.SchoolYear),
+                                     Sex = metadata.Gender,
+                                     DateOfBirth = metadata.Birthday,
+                                     BirthPlace = metadata.PlaceOfBirth,
+                                     Ethnic = metadata.Nation,
+                                     NationalId = metadata.Cmnd,
+                                     DateOfNationalId = metadata.IssuranceDate,
+                                     PlaceOfNationalId = metadata.IssuancePlace,
+                                     PermanentAddress = metadata.Address,
+                                     StudentHashIPFS = decoded.Event.HashInfo
+                                 });
+                             }
+                             _logger.LogInformation($"Listening Add Student Info {decoded.Event.StudentAddr}");
+                         });
 
-             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddLecturerInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-             await subscription.SubscribeAsync(filter);
-         }
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddStudentInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
 
-         private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
-         {
-             var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
-             var subscription = new EthLogsObservableSubscription(client);
-             subscription.GetSubscriptionDataResponsesAsObservable().
-                          Subscribe(async log =>
-                          {
-                              EventLog<AddStudentInfoEventDTO> decoded = Event<AddStudentInfoEventDTO>.DecodeEvent(log);
-                              _logger.LogInformation($"Listening Add Student Info {decoded.Event.StudentAddr}");
-                              //await AddNewStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
-                          });
+        private async Task ListenUpdateStudentInfoEvent(StreamingWebSocketClient client)
+        {
+            var filter = web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                         Subscribe(async log =>
+                         {
+                             EventLog<UpdateStudentInfoEventDTO> decoded = Event<UpdateStudentInfoEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation($"Listening Update Student Info {decoded.Event.StudentAddr}");
+                             //await UpdateStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
+                         });
 
-             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed AddStudentInfo Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
-             await subscription.SubscribeAsync(filter);
-         }*/
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
 
         private async Task PingAliveWS(StreamingWebSocketClient client, CancellationToken stoppingToken)
         {

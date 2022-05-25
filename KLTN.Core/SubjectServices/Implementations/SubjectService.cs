@@ -51,7 +51,6 @@ namespace KLTN.Core.SubjectServices.Implementations
                     MaxStudentAmount = subject.MaxStudentAmount,
                     JoinedStudentAmount = subject.JoinedStudentAmount,
                     LecturerName = subject.LecturerName,
-                    TokenAmount = subject.TokenAmount,
                     JoinedStudentList = subject.JoinedStudentList
                 };
                 if (studentAddress != null)
@@ -159,6 +158,8 @@ namespace KLTN.Core.SubjectServices.Implementations
             {
                 await _subject.InsertOneAsync(new Subject()
                 {
+                    ChainNetworkId = subject.ChainNetworkId,
+                    SubjectImg = subject.SubjectImg,
                     SubjectName = subject.SubjectName,
                     SubjectAddress = subject.SubjectAddress,
                     SubjectShortenName = subject.SubjectShortenName,
@@ -172,8 +173,7 @@ namespace KLTN.Core.SubjectServices.Implementations
                     EndTimeToComFirm = subject.EndTimeToComFirm,
                     MaxStudentAmount = subject.MaxStudentAmount,
                     LecturerAddress = subject.LecturerAddress,
-                    LecturerName = subject.LecturerName,
-                    TokenAmount = subject.TokenAmount
+                    LecturerName = subject.LecturerName
                 });
             }
             catch (Exception ex)

@@ -6,9 +6,11 @@ namespace KLTN.Core.SubjectServices.DTOs
 {
     public class SubjectDTO
     {
+        public int ChainNetworkId { get; set; }
         public string SubjectAddress { get; set; }
         public string SubjectName { get; set; }
         public string SubjectShortenName { get; set; }
+        public string SubjectImg { get; set; }
         public string SubjectDescription { get; set; }
         public string SubjectHashIPFS { get; set; }
         public string DepartmentName { get; set; }
@@ -19,6 +21,5 @@ namespace KLTN.Core.SubjectServices.DTOs
         public int MaxStudentAmount { get; set; }
         public string LecturerAddress { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
     }
 }

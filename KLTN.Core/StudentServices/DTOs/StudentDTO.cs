@@ -16,13 +16,12 @@ namespace KLTN.Core.StudentServices.DTOs
         public int SchoolYear { get; set; }
         public string Sex { get; set; }
         public long DateOfBirth { get; set; }
-        public long BirthPlace { get; set; }
+        public string BirthPlace { get; set; }
         public string Ethnic { get; set; }
         public string NationalId { get; set; }
-        public string DateOfNationalId { get; set; }
+        public int DateOfNationalId { get; set; }
         public string PlaceOfNationalId { get; set; }
         public string PermanentAddress { get; set; }
-        public string TemporaryAddress { get; set; }
         public string StudentHashIPFS { get; set; }
     }
 }

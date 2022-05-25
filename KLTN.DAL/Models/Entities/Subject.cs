@@ -13,9 +13,11 @@ namespace KLTN.DAL.Models.Entities
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
+        public int ChainNetworkId { get; set; }
         public string SubjectAddress { get; set; }
         public string SubjectName { get; set; }
         public string SubjectShortenName { get; set; }
+        public string SubjectImg { get; set; }
         public string SubjectDescription { get; set; }
         public string SubjectStatus { get; set; }
         public string SubjectHashIPFS { get; set; }
@@ -27,7 +29,6 @@ namespace KLTN.DAL.Models.Entities
         public int MaxStudentAmount { get; set; }
         public string LecturerAddress { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
         public int JoinedStudentAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
     }

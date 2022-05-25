@@ -234,7 +234,6 @@ namespace KLTN.Core.StudentServices.Implementations
                     DateOfNationalId = student.DateOfNationalId,
                     PlaceOfNationalId = student.PlaceOfNationalId,
                     PermanentAddress = student.PermanentAddress,
-                    TemporaryAddress = student.TemporaryAddress,
                     StudentHashIPFS = student.StudentHashIPFS,
                     DepartmentShortenName = student.DepartmentShortenName
                 });

@@ -84,7 +84,10 @@ namespace KLTN.Core.LecturerServicess.Implementations
                     LecturerId = lecturer.LecturerId,
                     LecturerAddress = lecturer.LecturerAddress,
                     DepartmentName = lecturer.DepartmentName,
-                    DepartmentShortenName = lecturer.DepartmentShortenName
+                    DepartmentShortenName = lecturer.DepartmentShortenName,
+                    Sex = lecturer.Sex,
+                    DateOfBirth = lecturer.DateOfBirth,
+                    LecturerHashIPFS = lecturer.LecturerHashIPFS
                 });
             }
             catch (Exception ex)
