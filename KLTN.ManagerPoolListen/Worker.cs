@@ -1,5 +1,7 @@
+using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Common.SmartContracts.Events;
+using KLTN.Common.SmartContracts.Functions.MissionContract;
 using KLTN.Common.Utilities.Constants;
 using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.Core.MissionServices.Interfaces;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Nethereum.Contracts;
 using Nethereum.JsonRpc.WebSocketStreamingClient;
+using Nethereum.RPC.Eth.DTOs;
 using Nethereum.RPC.Reactive.Eth;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
 using Newtonsoft.Json;
@@ -61,10 +64,10 @@ namespace KLTN.ManagerPoolListen
                     await ListenNewSubjectEvent(client);
                     await ListenNewScholarshipEvent(client);
                     await ListenNewTuitionEvent(client);
-                    /*                 _ = ListenActiveMissionContract(client);
-                                     _ = ListenActiveSubjectContract(client);
-                                     _ = ListenActiveScholarshipContract(client);
-                                     _ = ListenActiveTuitionContract(client);*/
+                    _ = ListenActiveMissionContract(client);
+                    _ = ListenActiveSubjectContract(client);
+                    _ = ListenActiveScholarshipContract(client);
+                    _ = ListenActiveTuitionContract(client);
                     await PingAliveWS(client, stoppingToken);
                 }
                 catch (Exception ex)
@@ -88,6 +91,28 @@ namespace KLTN.ManagerPoolListen
                 return json;
             }
             return String.Empty;
+        }
+
+        private async Task<Transaction> GetTransactionInput(string transactionHash)
+        {
+            Nethereum.RPC.Eth.DTOs.Transaction myFunctionTxn = null;
+            var callTimes = 0;
+            while (myFunctionTxn == null && callTimes < 5)
+            {
+                try
+                {
+                    myFunctionTxn = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash);
+                }
+                catch (Exception)
+                {
+                    await Task.Delay(2000);
+                }
+                callTimes++;
+            }
+            if (myFunctionTxn == null)
+                throw new CustomException("Transaction info is null", 400);
+
+            return myFunctionTxn;
         }
 
         private async Task ListenNewTuitionEvent(StreamingWebSocketClient client)
@@ -354,7 +379,7 @@ namespace KLTN.ManagerPoolListen
                 await Task.Delay(15000, stoppingToken);
             }
         }
-        /*
+
         private async Task ListenActiveMissionContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -362,14 +387,12 @@ namespace KLTN.ManagerPoolListen
                 using (var scope = _services.CreateScope())
                 {
                     var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                    //GetListMissionInProgress goi vao db de lay ra dangh sach cac contract tuition address
-                    var listMissionAddresses = await scopedProcessingService.GetListMissionInProgress(chainNetworkId);
+                    var listMissionAddresses = await scopedProcessingService.GetMissionListInProgress(chainNetworkId);
                     foreach (var address in listMissionAddresses)
                     {
                         if (!subcribedContracts.Contains(address))
                             await FollowMissionCompetitionAsync(client, address);
                     }
-
                 }
                 await Task.Delay(15000);
             }
@@ -398,7 +421,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateStudentRegister(missionContractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Register Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -418,7 +441,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateStudentCancelRegister(missionContractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Cancel Register Mission Event successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -439,7 +462,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(*//*parameter*//*);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerConfirmComplete(inputData.StudentList);
                                  _logger.LogInformation("Store Confirm Mission Event successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -455,12 +480,12 @@ namespace KLTN.ManagerPoolListen
                          try
                          {
                              _logger.LogInformation("Catch Unconfirm Mission Event: " + missionContractAddress);
-                             EventLog<ConfirmEventDTO> decoded = Event<ConfirmEventDTO>.DecodeEvent(log);
+                             EventLog<UnConfirmEventDTO> decoded = Event<UnConfirmEventDTO>.DecodeEvent(log);
 
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.UpdateUnconfirmToDatabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Unconfirm Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -481,7 +506,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.CloseMission(*//*parameter*//*);
+                                 await scopedProcessingService.CloseMission();
                                  _logger.LogInformation("Close Mission successfully with Contract: " + missionContractAddress);
                                  await subScriptionRegister.UnsubscribeAsync();
                                  await subscriptionCancelRegister.UnsubscribeAsync();
@@ -952,6 +977,6 @@ namespace KLTN.ManagerPoolListen
             {
                 _logger.LogError(ex, "Follow Tuition Contract Async exception: ");
             }
-        }*/
+        }
     }
 }

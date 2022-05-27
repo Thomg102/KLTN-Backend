@@ -6,6 +6,7 @@ using KLTN.DAL.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ using WebAPI.Utils.Constants;
 using KLTN.DAL.Models.DTOs;
 using KLTN.Common.Enums;
 using KLTN.DAL;
+
 
 namespace KLTN.Core.MissionServices.Implementations
 {
@@ -125,6 +127,16 @@ namespace KLTN.Core.MissionServices.Implementations
             }
         }
 
+        public async Task<List<string>> GetMissionListInProgress(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var missionList = await _mission.AsQueryable()
+                .Where(x => x.StartTime <= now && x.EndTimeToComFirm < now)
+                .Select(x => x.MissionAddress)
+                .ToListAsync();
+            return missionList;
+        }
+
         //Get all mission of Lecturer
         public List<LecturerMissionResponseDTO> GetAllMissionOfLecturer(string lecturerAddress)
         {
@@ -207,6 +219,31 @@ namespace KLTN.Core.MissionServices.Implementations
                 _logger.LogError(ex, "Error in CreateNewMission");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
+        }
+
+        public async Task UpdateStudentRegister(string missionAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task UpdateStudentCancelRegister(string missionAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task UpdateLecturerConfirmComplete(List<string> studentAddressList)
+        {
+
+        }
+
+        public async Task UpdateLecturerUnConfirmComplete(string studentAddress)
+        {
+
+        }
+
+        public async Task CloseMission()
+        {
+
         }
     }
 }
