@@ -153,7 +153,7 @@ namespace KLTN.Core.TuitionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var titionList = await _tuition.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime < now)
+                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetwork == chainNetworkId)
                 .Select(x => x.TuitionAddress)
                 .ToListAsync();
             return titionList;

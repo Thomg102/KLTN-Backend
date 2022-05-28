@@ -55,7 +55,6 @@ namespace KLTN.ManagerPoolListen
             {
                 try
                 {
-                    _logger.LogInformation("Application start ");
                     await client.StartAsync();
                     await ListenAddStudentEvent(client);
                     await ListenAddLecturerEvent(client);
@@ -306,6 +305,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
         {
+            Console.WriteLine(managerPoolAddress);
             var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
