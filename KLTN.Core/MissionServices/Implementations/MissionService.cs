@@ -131,7 +131,7 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var missionList = await _mission.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTimeToComFirm < now)
+                .Where(x => x.StartTime <= now && x.EndTimeToComFirm < now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.MissionAddress)
                 .ToListAsync();
             return missionList;
@@ -224,7 +224,28 @@ namespace KLTN.Core.MissionServices.Implementations
 
         public async Task UpdateStudentRegister(string missionAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                foreach (var joinedStudentList in mission.JoinedStudentList)
+                    if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                    {
+                        var filter = Builders<Mission>.Filter.Where(x => 
+                            x.MissionAddress.ToLower() == missionAddress.ToLower() 
+                            && x.ChainNetworkId == chainNetworkId
+                            && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
+                        );
+                        var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
 
+                        await _mission.UpdateOneAsync(filter, update);
+                        break;
+                    }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentRegister");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateStudentCancelRegister(string missionAddress, int chainNetworkId, string studentAddress)
@@ -234,12 +255,56 @@ namespace KLTN.Core.MissionServices.Implementations
 
         public async Task UpdateLecturerConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                foreach (var joinedStudentList in mission.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                            {
+                                var filter = Builders<Mission>.Filter.Where(x =>
+                                    x.MissionAddress.ToLower() == missionAddress.ToLower()
+                                    && x.ChainNetworkId == chainNetworkId
+                                    && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
+                                );
+                                var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
 
+                                await _mission.UpdateOneAsync(filter, update);
+                                break;
+                            }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerConfirmComplete");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                foreach (var joinedStudentList in mission.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        {
+                            var filter = Builders<Mission>.Filter.Where(x =>
+                                x.MissionAddress.ToLower() == missionAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                                && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
+                            );
+                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
 
+                            await _mission.UpdateOneAsync(filter, update);
+                            break;
+                        }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerUnConfirmComplete");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task CloseMission(string missionAddress, int chainNetworkId)

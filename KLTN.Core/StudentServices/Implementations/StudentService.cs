@@ -245,5 +245,32 @@ namespace KLTN.Core.StudentServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task UpdateStudentIntoDatabase(string studentAddress, StudentUpdateDTO studentInfo)
+        {
+            try
+            {
+                var currentHashIPFS = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().StudentHashIPFS;
+                var filter = Builders<Student>.Filter.Eq(x => x.StudentAddress.ToLower(), studentAddress.ToLower());
+                var update = Builders<Student>.Update.Set(x => x.StudentName, studentInfo.StudentName)
+                                                     .Set(x => x.StudentImg, studentInfo.StudentImg)
+                                                     .Set(x => x.Sex, studentInfo.Sex)
+                                                     .Set(x => x.DateOfBirth, studentInfo.DateOfBirth)
+                                                     .Set(x => x.BirthPlace, studentInfo.BirthPlace)
+                                                     .Set(x => x.Ethnic, studentInfo.Ethnic)
+                                                     .Set(x => x.NationalId, studentInfo.NationalId)
+                                                     .Set(x => x.DateOfNationalId, studentInfo.DateOfNationalId)
+                                                     .Set(x => x.PlaceOfNationalId, studentInfo.PlaceOfNationalId)
+                                                     .Set(x => x.PermanentAddress, studentInfo.PermanentAddress)
+                                                     .Set(x => x.StudentHashIPFS, studentInfo.StudentHashIPFS);
+                if (studentInfo.StudentHashIPFS != currentHashIPFS)
+                    await _student.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentIntoDatabase");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

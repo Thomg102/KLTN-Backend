@@ -6,7 +6,7 @@ namespace KLTN.Core.TuitionServices.DTOs
 {
     public class TuitionDTO
     {
-        public int ChainNetwork { get; set; }
+        public int ChainNetworkId { get; set; }
         public string Img { get; set; }
         public string TuitionId { get; set; }
         public string TuitionName { get; set; }

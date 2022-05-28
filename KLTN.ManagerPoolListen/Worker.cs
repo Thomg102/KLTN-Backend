@@ -10,10 +10,13 @@ using KLTN.Core.StudentServices.Interfaces;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
+using KLTN.DAL;
+using KLTN.DAL.Models.Entities;
 using KLTN.ManagerPoolListen.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MongoDB.Driver;
 using Nethereum.Contracts;
 using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Eth.DTOs;
@@ -32,6 +35,9 @@ namespace KLTN.ManagerPoolListen
 {
     public class Worker : BackgroundService
     {
+        private readonly IMongoDbContext _context;
+        private readonly IMongoCollection<SubcribedContractsListenEvent> _subcribedContractsListenEvent;
+
         private readonly IServiceScopeFactory _services;
         private readonly ILogger<Worker> _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -41,11 +47,17 @@ namespace KLTN.ManagerPoolListen
 
         List<string> subcribedContracts = new List<string>();
 
-        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime hostApplicationLifetime)
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime hostApplicationLifetime, IMongoDbContext context)
         {
             _logger = logger;
             _services = serviceScopeFactory;
             _hostApplicationLifetime = hostApplicationLifetime;
+            _context = context;
+            _subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
+            var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
+            foreach (var subcribedContract in subcribedContractsList)
+                subcribedContracts.Add(subcribedContract.SubcribedContracts);
+
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
         }
 
@@ -123,14 +135,14 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewTuitionEventDTO> decoded = Event<NewTuitionEventDTO>.DecodeEvent(log);
-                             string jsonResponse = await RequestIPFS("QmYTz3GW3Xho27ZY8WgN8By4i1DwmkKCeGCJCKnBcKX16k");
+                             string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
                              var tuitionMetadata = JsonConvert.DeserializeObject<TuitionMetadataDTO>(jsonResponse);
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
                                  await scopedProcessingService.CreateNewTuition(new TuitionDTO
                                  {
-                                     ChainNetwork = chainNetworkId,
+                                     ChainNetworkId = chainNetworkId,
                                      Img = tuitionMetadata.Img,
                                      TuitionId = tuitionMetadata.TuitionId,
                                      TuitionName = tuitionMetadata.Name,
@@ -354,8 +366,27 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<UpdateStudentInfoEventDTO> decoded = Event<UpdateStudentInfoEventDTO>.DecodeEvent(log);
+                             string jsonResponse = await RequestIPFS(decoded.Event.HashInfo);
+                             var metadata = JsonConvert.DeserializeObject<StudentUpdateMetadataDTO>(jsonResponse);
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IStudentService>();
+                                 await scopedProcessingService.UpdateStudentIntoDatabase(decoded.Event.StudentAddr, new Core.StudentServices.DTOs.StudentUpdateDTO
+                                 {
+                                     StudentName = metadata.Name,
+                                     StudentImg = metadata.ImgUrl,
+                                     Sex = metadata.Gender,
+                                     DateOfBirth = metadata.Birthday,
+                                     BirthPlace = metadata.PlaceOfBirth,
+                                     Ethnic = metadata.Nation,
+                                     NationalId = metadata.Cmnd,
+                                     DateOfNationalId = metadata.IssuranceDate,
+                                     PlaceOfNationalId = metadata.IssuancePlace,
+                                     PermanentAddress = metadata.Address,
+                                     StudentHashIPFS = decoded.Event.HashInfo
+                                 });
+                             };
                              _logger.LogInformation($"Listening Update Student Info {decoded.Event.StudentAddr}");
-                             //await UpdateStudentIntoDatabase(decoded.Event.StudentAddr, decoded.Event.HashInfo);
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -414,6 +445,7 @@ namespace KLTN.ManagerPoolListen
             try
             {
                 subcribedContracts.Add(missionContractAddress);
+                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress});
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -426,7 +458,7 @@ namespace KLTN.ManagerPoolListen
                      {
                          try
                          {
-                             _logger.LogInformation("Catched the Register Mission Event: " + missionContractAddress);
+                             _logger.LogInformation("Catch the Register Mission Event: " + missionContractAddress);
                              EventLog<RegisterEventDTO> decoded = Event<RegisterEventDTO>.DecodeEvent(log);
 
                              using (var scope = _services.CreateScope())
@@ -496,6 +528,8 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
                                  await scopedProcessingService.UpdateLecturerUnConfirmComplete(missionContractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Unconfirm Mission successfully with Contract: " + missionContractAddress);
                              }
@@ -585,6 +619,7 @@ namespace KLTN.ManagerPoolListen
             try
             {
                 subcribedContracts.Add(contractAddress);
+                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -756,6 +791,7 @@ namespace KLTN.ManagerPoolListen
             try
             {
                 subcribedContracts.Add(contractAddress);
+                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionAddStudentToScholarship = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromScholarship = new EthLogsObservableSubscription(client);
@@ -873,6 +909,7 @@ namespace KLTN.ManagerPoolListen
             try
             {
                 subcribedContracts.Add(contractAddress);
+                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionAddStudentToTuition = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromTuition = new EthLogsObservableSubscription(client);

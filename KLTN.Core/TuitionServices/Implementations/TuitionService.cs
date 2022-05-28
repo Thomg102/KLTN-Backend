@@ -125,7 +125,7 @@ namespace KLTN.Core.TuitionServices.Implementations
             {
                 await _tuition.InsertOneAsync(new Tuition()
                 {
-                    ChainNetwork = tuition.ChainNetwork,
+                    ChainNetworkId = tuition.ChainNetworkId,
                     ImgURL = tuition.Img,
                     TuitionId = tuition.TuitionId,
                     TuitionName = tuition.TuitionName,
@@ -153,7 +153,7 @@ namespace KLTN.Core.TuitionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var titionList = await _tuition.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime < now)
+                .Where(x => x.StartTime <= now && x.EndTime < now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.TuitionAddress)
                 .ToListAsync();
             return titionList;

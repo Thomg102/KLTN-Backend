@@ -12,7 +12,7 @@ namespace KLTN.DAL.Models.Entities
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
-        public int ChainNetwork { get; set; }
+        public int ChainNetworkId { get; set; }
         public string ImgURL { get; set; }
         public string TuitionId { get; set; }
         public string TuitionName { get; set; }

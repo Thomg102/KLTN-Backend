@@ -14,5 +14,6 @@ namespace KLTN.Core.StudentServices.Interfaces
         List<StudentCertificateDTO> GetListMissionCertificate(string studentAddress);
         List<StudentResponseDTO> GetAllStudent();
         Task CreateNewStudent(StudentDTO student);
+        Task UpdateStudentIntoDatabase(string studentAddress, StudentUpdateDTO studentInfo);
     }
 }

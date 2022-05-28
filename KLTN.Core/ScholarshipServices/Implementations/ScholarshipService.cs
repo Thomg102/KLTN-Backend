@@ -178,7 +178,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var scholarshipList = await _scholarship.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime < now)
+                .Where(x => x.StartTime <= now && x.EndTime < now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.ScholarshipAddress)
                 .ToListAsync();
             return scholarshipList;
