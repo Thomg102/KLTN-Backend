@@ -127,6 +127,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                 {
                     ChainNetwork = tuition.ChainNetwork,
                     ImgURL = tuition.Img,
+                    TuitionId = tuition.TuitionId,
                     TuitionName = tuition.TuitionName,
                     TuitionAddress = tuition.TuitionAddress,
                     TuitionDescription = tuition.TuitionDescription,
@@ -138,6 +139,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                     TokenAmount = tuition.TokenAmount,
                     CurrencyAmount = tuition.CurrencyAmount,
                     LecturerInCharge = tuition.LecturerInCharge,
+                    LecturerName = tuition.LecturerName,
                 });
             }
             catch (Exception ex)

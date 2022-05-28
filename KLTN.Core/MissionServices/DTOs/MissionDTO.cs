@@ -7,6 +7,7 @@ namespace KLTN.Core.MissionServices.DTOs
     public class MissionDTO
     {
         public int ChainNetworkId { get; set; }
+        public string MissionId { get; set; }
         public string MissionImg { get; set; }
         public string MissionAddress { get; set; }
         public string MissionName { get; set; }

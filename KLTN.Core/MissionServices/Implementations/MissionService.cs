@@ -196,6 +196,7 @@ namespace KLTN.Core.MissionServices.Implementations
                 await _mission.InsertOneAsync(new Mission()
                 {
                     ChainNetworkId = mission.ChainNetworkId,
+                    MissionId = mission.MissionId,
                     MissionImg = mission.MissionImg,
                     MissionName = mission.MissionName,
                     MissionAddress = mission.MissionAddress,

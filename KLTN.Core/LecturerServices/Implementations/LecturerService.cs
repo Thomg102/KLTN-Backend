@@ -80,6 +80,7 @@ namespace KLTN.Core.LecturerServicess.Implementations
             {
                 await _lecturer.InsertOneAsync(new Lecturer()
                 {
+                    LecturerImg = lecturer.LecturerImg,
                     LecturerName = lecturer.LecturerName,
                     LecturerId = lecturer.LecturerId,
                     LecturerAddress = lecturer.LecturerAddress,

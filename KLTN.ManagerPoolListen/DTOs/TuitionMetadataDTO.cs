@@ -19,6 +19,9 @@ namespace KLTN.ManagerPoolListen.DTOs
         [JsonProperty("lecturerInCharge")]
         public string LecturerInCharge { get; set; }
 
+        [JsonProperty("lecturerName")]
+        public string LecturerName { get; set; }
+
         [JsonProperty("amountToken")]
         public string AmountToken { get; set; }
 
@@ -34,6 +37,4 @@ namespace KLTN.ManagerPoolListen.DTOs
         [JsonProperty("description")]
         public string Description { get; set; }
     }
-
-
 }

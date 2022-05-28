@@ -13,6 +13,8 @@ namespace KLTN.DAL.Models.Entities
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
         public int ChainNetworkId { get; set; }
+        public string ScholarshipImg { get; set; }
+        public string ScholarshipId { get; set; }
         public string ScholarshipAddress { get; set; }
         public string ScholarshipName { get; set; }
         public string ScholarshipStatus { get; set; }

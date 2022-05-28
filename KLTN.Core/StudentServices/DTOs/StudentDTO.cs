@@ -8,6 +8,7 @@ namespace KLTN.Core.StudentServices.DTOs
     {
         public string StudentName { get; set; }
         public string StudentId { get; set; }
+        public string StudentImg { get; set; }
         public string StudentAddress { get; set; }
         public string MajorName { get; set; }
         public string ClassroomName { get; set; }

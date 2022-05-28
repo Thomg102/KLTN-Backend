@@ -132,6 +132,7 @@ namespace KLTN.ManagerPoolListen
                                  {
                                      ChainNetwork = chainNetworkId,
                                      Img = tuitionMetadata.Img,
+                                     TuitionId = tuitionMetadata.TuitionId,
                                      TuitionName = tuitionMetadata.Name,
                                      TuitionAddress = decoded.Log.Address,
                                      TuitionDescription = tuitionMetadata.Description,
@@ -141,7 +142,8 @@ namespace KLTN.ManagerPoolListen
                                      EndTime = tuitionMetadata.EndTime,
                                      TokenAmount = long.Parse(tuitionMetadata.AmountToken),
                                      CurrencyAmount = long.Parse(tuitionMetadata.AmountCurency),
-                                     LecturerInCharge = tuitionMetadata.LecturerInCharge
+                                     LecturerInCharge = tuitionMetadata.LecturerInCharge,
+                                     LecturerName = tuitionMetadata.LecturerName,
                                  });
                              }
                              _logger.LogInformation($"Listening Add New Tuition {decoded.Log.Address}");
@@ -167,6 +169,8 @@ namespace KLTN.ManagerPoolListen
                                  await scopedProcessingService.CreateNewScholarship(new Core.ScholarshipServices.DTOs.ScholarshipDTO
                                  {
                                      ChainNetworkId = chainNetworkId,
+                                     ScholarshipId = metadata.ScholarshipId,
+                                     ScholarshipImg = metadata.Img,
                                      ScholarshipName = metadata.Name,
                                      ScholarshipAddress = decoded.Log.Address,
                                      ScholarShipDescription = metadata.Description,
@@ -174,7 +178,9 @@ namespace KLTN.ManagerPoolListen
                                      StartTime = metadata.StartTime,
                                      EndTime = metadata.EndTime,
                                      TokenAmount = long.Parse(metadata.Award),
-                                     LecturerInCharge = metadata.LecturerInCharge
+                                     LecturerInCharge = metadata.LecturerInCharge,
+                                     LecturerName = metadata.LecturerName,
+
                                  });
                              }
                              _logger.LogInformation($"Listening Add New Scholarship {decoded.Log.Address}");
@@ -200,6 +206,7 @@ namespace KLTN.ManagerPoolListen
                                  await scopedProcessingService.CreateNewSubject(new Core.SubjectServices.DTOs.SubjectDTO
                                  {
                                      ChainNetworkId = chainNetworkId,
+                                     SubjectId = metadata.ClassId,
                                      SubjectName = metadata.Name,
                                      SubjectAddress = decoded.Log.Address,
                                      SubjectShortenName = metadata.ShortName,
@@ -212,7 +219,8 @@ namespace KLTN.ManagerPoolListen
                                      EndTimeToResigter = metadata.EndTimeToRegister,
                                      EndTimeToComFirm = metadata.EndTimeToConfirm,
                                      MaxStudentAmount = int.Parse(metadata.MaxEntrant),
-                                     LecturerAddress = metadata.LecturerInCharge
+                                     LecturerAddress = metadata.LecturerInCharge,
+                                     LecturerName = metadata.LecturerName,
                                  });
                              }
                              _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
@@ -238,6 +246,7 @@ namespace KLTN.ManagerPoolListen
                                  await scopedProcessingService.CreateNewMission(new Core.MissionServices.DTOs.MissionDTO
                                  {
                                      ChainNetworkId = chainNetworkId,
+                                     MissionId = metadata.MissionId,
                                      MissionName = metadata.Name,
                                      MissionAddress = decoded.Log.Address,
                                      MissionShortenName = metadata.ShortName,
@@ -252,7 +261,7 @@ namespace KLTN.ManagerPoolListen
                                      MaxStudentAmount = int.Parse(metadata.MaxEntrant),
                                      LecturerAddress = metadata.LecturerInCharge,
                                      TokenAmount = long.Parse(metadata.Award),
-                                     LecturerName = metadata.LecturerName
+                                     LecturerName = metadata.LecturerName,
                                  });
                              }
                              _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
@@ -277,6 +286,7 @@ namespace KLTN.ManagerPoolListen
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ILecturerService>();
                                  await scopedProcessingService.CreateNewLectuter(new Core.LecturerServices.DTOs.LecturerDTO
                                  {
+                                     LecturerImg = metadata.Img,
                                      LecturerName = metadata.Name,
                                      LecturerId = metadata.LecturerId,
                                      LecturerAddress = decoded.Event.LecturerAddr,
@@ -311,6 +321,7 @@ namespace KLTN.ManagerPoolListen
                                  {
                                      StudentName = metadata.Name,
                                      StudentId = metadata.StudentId,
+                                     StudentImg = metadata.ImgUrl,
                                      StudentAddress = decoded.Event.StudentAddr,
                                      MajorName = metadata.Major,
                                      ClassroomName = metadata.Class,

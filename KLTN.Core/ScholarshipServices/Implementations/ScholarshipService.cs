@@ -153,6 +153,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 await _scholarship.InsertOneAsync(new Scholarship()
                 {
                     ChainNetworkId = scholarship.ChainNetworkId,
+                    ScholarshipId = scholarship.ScholarshipId,
+                    ScholarshipImg = scholarship.ScholarshipImg,
                     ScholarshipName = scholarship.ScholarshipName,
                     ScholarshipAddress = scholarship.ScholarshipAddress,
                     ScholarshipStatus = Status.Opening.ToString(),

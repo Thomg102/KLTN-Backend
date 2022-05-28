@@ -8,6 +8,7 @@ namespace KLTN.Core.TuitionServices.DTOs
     {
         public int ChainNetwork { get; set; }
         public string Img { get; set; }
+        public string TuitionId { get; set; }
         public string TuitionName { get; set; }
         public string TuitionAddress { get; set; }
         public string TuitionDescription { get; set; }
@@ -19,5 +20,6 @@ namespace KLTN.Core.TuitionServices.DTOs
         public long TokenAmount { get; set; }
         public long CurrencyAmount { get; set; }
         public string LecturerInCharge { get; set; }
+        public string LecturerName { get; set; }
     }
 }

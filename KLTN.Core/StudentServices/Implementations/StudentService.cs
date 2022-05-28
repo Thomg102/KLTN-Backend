@@ -220,6 +220,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 await _student.InsertOneAsync(new Student()
                 {
                     StudentName = student.StudentName,
+                    StudentImg = student.StudentImg,
                     StudentId = student.StudentId,
                     StudentAddress = student.StudentAddress,
                     MajorName = student.MajorName,

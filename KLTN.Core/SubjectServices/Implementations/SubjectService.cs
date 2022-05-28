@@ -160,6 +160,7 @@ namespace KLTN.Core.SubjectServices.Implementations
                 await _subject.InsertOneAsync(new Subject()
                 {
                     ChainNetworkId = subject.ChainNetworkId,
+                    SubjectId = subject.SubjectId,
                     SubjectImg = subject.SubjectImg,
                     SubjectName = subject.SubjectName,
                     SubjectAddress = subject.SubjectAddress,

@@ -14,6 +14,7 @@ namespace KLTN.DAL.Models.Entities
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
         public int ChainNetworkId { get; set; }
+        public string SubjectId { get; set; }
         public string SubjectAddress { get; set; }
         public string SubjectName { get; set; }
         public string SubjectShortenName { get; set; }

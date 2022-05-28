@@ -8,6 +8,7 @@ namespace KLTN.Core.SubjectServices.DTOs
     {
         public int ChainNetworkId { get; set; }
         public string SubjectAddress { get; set; }
+        public string SubjectId { get; set; }
         public string SubjectName { get; set; }
         public string SubjectShortenName { get; set; }
         public string SubjectImg { get; set; }

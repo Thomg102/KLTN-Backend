@@ -13,6 +13,7 @@ namespace KLTN.DAL.Models.Entities
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
+        public string StudentImg { get; set; }
         public string StudentName { get; set; }
         public string StudentId { get; set; }
         public string StudentAddress { get; set; }

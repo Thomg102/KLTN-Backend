@@ -7,6 +7,8 @@ namespace KLTN.Core.ScholarshipServices.DTOs
     public class ScholarshipDTO
     {
         public int ChainNetworkId { get; set; }
+        public string ScholarshipImg { get; set; }
+        public string ScholarshipId { get; set; }
         public string ScholarshipAddress { get; set; }
         public string ScholarshipName { get; set; }
         public string ScholarshipHashIPFS { get; set; }

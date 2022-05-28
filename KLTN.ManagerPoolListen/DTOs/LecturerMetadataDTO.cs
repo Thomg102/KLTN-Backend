@@ -7,6 +7,9 @@ namespace KLTN.ManagerPoolListen.DTOs
 {
     class LecturerMetadataDTO
     {
+        [JsonProperty("img")]
+        public string Img { get; set; }
+
         [JsonProperty("name")]
         public string Name { get; set; }
 

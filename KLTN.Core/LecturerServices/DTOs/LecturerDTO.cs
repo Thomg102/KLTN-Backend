@@ -6,6 +6,7 @@ namespace KLTN.Core.LecturerServices.DTOs
 {
     public class LecturerDTO
     {
+        public string LecturerImg { get; set; }
         public string LecturerName { get; set; }
         public string LecturerId { get; set; }
         public string LecturerAddress { get; set; }
