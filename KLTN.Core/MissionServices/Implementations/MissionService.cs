@@ -131,7 +131,7 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var missionList = await _mission.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTimeToComFirm < now && x.ChainNetworkId == chainNetworkId)
+                .Where(x => x.StartTime <= now && x.EndTimeToComFirm > now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.MissionAddress)
                 .ToListAsync();
             return missionList;
