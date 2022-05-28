@@ -6,7 +6,7 @@ namespace KLTN.Common.SmartContracts.Events
     public class PaymentEventDTO : IEventDTO
     {
         [Parameter("address", "student", 1, false)]
-        public long StudentsAmount { get; set; }
+        public string StudentsAddr { get; set; }
 
         [Parameter("uint256", "timestamp", 2, false)]
         public long Timestamp { get; set; }

@@ -8,6 +8,7 @@ using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -181,6 +182,41 @@ namespace KLTN.Core.SubjectServices.Implementations
                 _logger.LogError(ex, "Error in CreateNewSubject");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
+        }
+
+        public async Task<List<string>> GetSubjectListInProgress(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var missionList = await _subject.AsQueryable()
+                .Where(x => x.StartTime <= now && x.EndTimeToComFirm < now)
+                .Select(x => x.SubjectAddress)
+                .ToListAsync();
+            return missionList;
+        }
+
+        public async Task UpdateStudentRegister(string subjectAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task UpdateStudentCancelRegister(string subjectAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task UpdateLecturerConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddressList)
+        {
+
+        }
+
+        public async Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task CloseSubject(string subjectAddress, int chainNetworkId)
+        {
+
         }
     }
 }

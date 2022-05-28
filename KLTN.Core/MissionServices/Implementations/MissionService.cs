@@ -231,17 +231,17 @@ namespace KLTN.Core.MissionServices.Implementations
 
         }
 
-        public async Task UpdateLecturerConfirmComplete(List<string> studentAddressList)
+        public async Task UpdateLecturerConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddressList)
         {
 
         }
 
-        public async Task UpdateLecturerUnConfirmComplete(string studentAddress)
+        public async Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, string studentAddress)
         {
 
         }
 
-        public async Task CloseMission()
+        public async Task CloseMission(string missionAddress, int chainNetworkId)
         {
 
         }

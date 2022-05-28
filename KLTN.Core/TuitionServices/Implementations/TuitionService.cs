@@ -8,6 +8,7 @@ using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,6 +145,36 @@ namespace KLTN.Core.TuitionServices.Implementations
                 _logger.LogError(ex, "Error in CreateNewTuition");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
+        }
+
+        public async Task<List<string>> GetTuitionListInProgress(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var titionList = await _tuition.AsQueryable()
+                .Where(x => x.StartTime <= now && x.EndTime < now)
+                .Select(x => x.TuitionAddress)
+                .ToListAsync();
+            return titionList;
+        }
+
+        public async Task AddStudentToTuition(string tuitionpAddress, int chainNetworkId, List<string> studentAddressList)
+        {
+
+        }
+
+        public async Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task UpdateStudentCompeletedPayment(string tuitionAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task CloseTuition(string tuitionAddress, int chainNetworkId)
+        {
+
         }
     }
 }

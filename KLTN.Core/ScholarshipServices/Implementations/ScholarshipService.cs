@@ -8,6 +8,7 @@ using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
+using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -169,6 +170,31 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 _logger.LogError(ex, "Error in CreateNewScholarship");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
+        }
+
+        public async Task<List<string>> GetScholarshipListInProgress(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var scholarshipList = await _scholarship.AsQueryable()
+                .Where(x => x.StartTime <= now && x.EndTime < now)
+                .Select(x => x.ScholarshipAddress)
+                .ToListAsync();
+            return scholarshipList;
+        }
+
+        public async Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
+        {
+
+        }
+
+        public async Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, string studentAddress)
+        {
+
+        }
+
+        public async Task CloseScholarship(string scholarshipAddress, int chainNetworkId)
+        {
+
         }
     }
 }

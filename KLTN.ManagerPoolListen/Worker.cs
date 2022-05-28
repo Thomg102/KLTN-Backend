@@ -464,7 +464,7 @@ namespace KLTN.ManagerPoolListen
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
                                  var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
                                  var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
-                                 await scopedProcessingService.UpdateLecturerConfirmComplete(inputData.StudentList);
+                                 await scopedProcessingService.UpdateLecturerConfirmComplete(missionContractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Confirm Mission Event successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -485,7 +485,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(decoded.Event.StudentAddr);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(missionContractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Unconfirm Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -506,7 +506,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
-                                 await scopedProcessingService.CloseMission();
+                                 await scopedProcessingService.CloseMission(missionContractAddress, chainNetworkId);
                                  _logger.LogInformation("Close Mission successfully with Contract: " + missionContractAddress);
                                  await subScriptionRegister.UnsubscribeAsync();
                                  await subscriptionCancelRegister.UnsubscribeAsync();
@@ -558,8 +558,7 @@ namespace KLTN.ManagerPoolListen
                 using (var scope = _services.CreateScope())
                 {
                     var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                    //GetListMissionInProgress goi vao db de lay ra dangh sach cac contract tuition address
-                    var listAddresses = await scopedProcessingService.GetListSubjectInProgress(chainNetworkId);
+                    var listAddresses = await scopedProcessingService.GetSubjectListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
                         if (!subcribedContracts.Contains(address))
@@ -593,7 +592,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateStudentRegister(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Register Subject successfully with Contract: " + contractAddress);
                              }
                          }
@@ -613,7 +612,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateStudentCancelRegister(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Cancel Register Subject Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -634,7 +633,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 var competition = await scopedProcessingService.UpdateConfirmToDatabase(*//*parameter*//*);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Confirm Subject Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -650,12 +651,12 @@ namespace KLTN.ManagerPoolListen
                          try
                          {
                              _logger.LogInformation("Catch Unconfirm Subject Event: " + contractAddress);
-                             EventLog<ConfirmEventDTO> decoded = Event<ConfirmEventDTO>.DecodeEvent(log);
+                             EventLog<UnConfirmEventDTO> decoded = Event<UnConfirmEventDTO>.DecodeEvent(log);
 
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 await scopedProcessingService.UpdateUnconfirmToDatabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
                                  _logger.LogInformation("Store Unconfirm Subject successfully with Contract: " + contractAddress);
                              }
                          }
@@ -676,7 +677,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 await scopedProcessingService.CloseMission(*//*parameter*//*);
+                                 await scopedProcessingService.CloseSubject(contractAddress, chainNetworkId);
                                  _logger.LogInformation("Close Subject successfully with Contract: " + contractAddress);
                                  await subScriptionRegister.UnsubscribeAsync();
                                  await subscriptionCancelRegister.UnsubscribeAsync();
@@ -728,8 +729,7 @@ namespace KLTN.ManagerPoolListen
                 using (var scope = _services.CreateScope())
                 {
                     var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                    //GetListMissionInProgress goi vao db de lay ra dangh sach cac contract tuition address
-                    var listAddresses = await scopedProcessingService.GetListScholarshipInProgress(chainNetworkId);
+                    var listAddresses = await scopedProcessingService.GetScholarshipListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
                         if (!subcribedContracts.Contains(address))
@@ -761,7 +761,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.AddStudentToScholarship(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Add Student To Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -781,7 +783,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
+                                 await scopedProcessingService.RemoveStudentFromScholarship(contractAddress, chainNetworkId, decoded.Event.StudentsAdr);
                                  _logger.LogInformation("Store Remove Student From Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -802,7 +804,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 await scopedProcessingService.CloseScholarship(*//*parameter*//*);
+                                 await scopedProcessingService.CloseScholarship(contractAddress, chainNetworkId);
                                  _logger.LogInformation("Close Subject successfully with Contract: " + contractAddress);
                                  await subScriptionAddStudentToScholarship.UnsubscribeAsync();
                                  await subscriptionRemoveStudentFromScholarship.UnsubscribeAsync();
@@ -844,8 +846,7 @@ namespace KLTN.ManagerPoolListen
                 using (var scope = _services.CreateScope())
                 {
                     var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                    //GetListMissionInProgress goi vao db de lay ra dangh sach cac contract tuition address
-                    var listAddresses = await scopedProcessingService.GetListTuitionInProgress(chainNetworkId);
+                    var listAddresses = await scopedProcessingService.GetTuitionListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
                         if (!subcribedContracts.Contains(address))
@@ -878,7 +879,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateRegisterToDatabase(*//*parameter*//*);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.AddStudentToTuition(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Add Student To Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -898,7 +901,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
+                                 await scopedProcessingService.RemoveStudentFromTuition(contractAddress, chainNetworkId, decoded.Event.StudentsAddr);
                                  _logger.LogInformation("Store Remove Student From Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -918,7 +921,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 var competition = await scopedProcessingService.UpdateCancelRegisterToDabase(*//*parameter*//*);
+                                 await scopedProcessingService.UpdateStudentCompeletedPayment(contractAddress, chainNetworkId, decoded.Event.StudentsAddr);
                                  _logger.LogInformation("Store Payment Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -939,7 +942,7 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 await scopedProcessingService.CloseTuition(*//*parameter*//*);
+                                 await scopedProcessingService.CloseTuition(contractAddress, chainNetworkId);
                                  _logger.LogInformation("Close Tuition successfully with Contract: " + contractAddress);
                                  await subScriptionAddStudentToTuition.UnsubscribeAsync();
                                  await subscriptionRemoveStudentFromTuition.UnsubscribeAsync();
