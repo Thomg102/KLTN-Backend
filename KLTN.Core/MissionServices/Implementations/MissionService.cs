@@ -16,7 +16,7 @@ using WebAPI.Utils.Constants;
 using KLTN.DAL.Models.DTOs;
 using KLTN.Common.Enums;
 using KLTN.DAL;
-
+using KLTN.DAL.Models.Entities;
 
 namespace KLTN.Core.MissionServices.Implementations
 {
@@ -25,6 +25,7 @@ namespace KLTN.Core.MissionServices.Implementations
         private readonly ILogger<MissionService> _logger;
         private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Mission> _mission;
+        private readonly IMongoCollection<Student> _student;
         private readonly IMongoCollection<MissionType> _missionType;
 
         public MissionService(ILogger<MissionService> logger, IMongoDbContext context)
@@ -33,6 +34,7 @@ namespace KLTN.Core.MissionServices.Implementations
             _context = context;
             _mission = _context.GetCollection<Mission>(typeof(Mission).Name);
             _missionType = _context.GetCollection<MissionType>(typeof(MissionType).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
         }
 
         // Get detail of specific mission Student/Lecturer/Admin
@@ -212,7 +214,8 @@ namespace KLTN.Core.MissionServices.Implementations
                     MaxStudentAmount = mission.MaxStudentAmount,
                     LecturerAddress = mission.LecturerAddress,
                     LecturerName = mission.LecturerName,
-                    TokenAmount = mission.TokenAmount
+                    TokenAmount = mission.TokenAmount,
+                    JoinedStudentList = new List<JoinedStudentDTO>() { }
                 });
             }
             catch (Exception ex)
@@ -226,20 +229,18 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             try
             {
-                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                foreach (var joinedStudentList in mission.JoinedStudentList)
-                    if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
-                    {
-                        var filter = Builders<Mission>.Filter.Where(x => 
-                            x.MissionAddress.ToLower() == missionAddress.ToLower() 
-                            && x.ChainNetworkId == chainNetworkId
-                            && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
-                        );
-                        var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Mission>.Filter.Where(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Mission>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
+                {
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
 
-                        await _mission.UpdateOneAsync(filter, update);
-                        break;
-                    }
+                await _mission.UpdateOneAsync(filter, update);
+
             }
             catch (Exception ex)
             {
@@ -250,7 +251,26 @@ namespace KLTN.Core.MissionServices.Implementations
 
         public async Task UpdateStudentCancelRegister(string missionAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Mission>.Filter.Where(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Mission>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
+                {
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
 
+                await _mission.UpdateOneAsync(filter, update);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentCancelRegister");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateLecturerConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddressList)
@@ -258,20 +278,26 @@ namespace KLTN.Core.MissionServices.Implementations
             try
             {
                 var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var studentListCount = new int();
+                var filter = Builders<Mission>.Filter.Where(x =>
+                    x.MissionAddress.ToLower() == missionAddress.ToLower()
+                    && x.ChainNetworkId == chainNetworkId
+                );
                 foreach (var joinedStudentList in mission.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                             {
-                                var filter = Builders<Mission>.Filter.Where(x =>
-                                    x.MissionAddress.ToLower() == missionAddress.ToLower()
-                                    && x.ChainNetworkId == chainNetworkId
-                                    && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
-                                );
-                                var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
+
+                                int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
+                                var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
 
                                 await _mission.UpdateOneAsync(filter, update);
+                                studentListCount++;
                                 break;
                             }
+                var joinedStudentAmount = mission.JoinedStudentAmount;
+                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount + studentListCount);
+                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -280,25 +306,29 @@ namespace KLTN.Core.MissionServices.Implementations
             }
         }
 
-        public async Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, string studentAddress)
+        public async Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddressList)
         {
             try
             {
                 var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var studentListCount = new int();
+                var filter = Builders<Mission>.Filter.Where(x =>
+                                x.MissionAddress.ToLower() == missionAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
                 foreach (var joinedStudentList in mission.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
                         if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
                         {
-                            var filter = Builders<Mission>.Filter.Where(x =>
-                                x.MissionAddress.ToLower() == missionAddress.ToLower()
-                                && x.ChainNetworkId == chainNetworkId
-                                && x.JoinedStudentList.Any(y => y.StudentAddress.ToLower() == studentAddress.ToLower())
-                            );
-                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, true);
+                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 
                             await _mission.UpdateOneAsync(filter, update);
+                            studentListCount++;
                             break;
                         }
+                var joinedStudentAmount = mission.JoinedStudentAmount;
+                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount - studentListCount);
+                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -309,7 +339,21 @@ namespace KLTN.Core.MissionServices.Implementations
 
         public async Task CloseMission(string missionAddress, int chainNetworkId)
         {
-
+            try
+            {
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Mission>.Filter.Where(x =>
+                                x.MissionAddress.ToLower() == missionAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                var update = Builders<Mission>.Update.Set(x => x.MissionStatus, Status.Closed.ToString());
+                await _mission.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CloseMission");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
     }
 }

@@ -6,10 +6,8 @@ using System.Text;
 
 namespace KLTN.Common.SmartContracts.Functions.MissionContract
 {
-    [Function("confirmCompletedAddress")]
-    public class ConfirmCompletedAddress : FunctionMessage
+    [Function("isReadyToClose", "bool")]
+    public class IsReadyToClose : FunctionMessage
     {
-        [Parameter("address[]", "_students", 1)]
-        public List<string> StudentList { get; set; }
     }
 }

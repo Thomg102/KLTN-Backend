@@ -16,7 +16,7 @@ namespace KLTN.Core.SubjectServices.Interfaces
         Task UpdateStudentRegister(string subjectAddress, int chainNetworkId, string studentAddress);
         Task UpdateStudentCancelRegister(string subjectAddress, int chainNetworkId, string studentAddress);
         Task UpdateLecturerConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentList);
-        Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, string studentAddress);
+        Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseSubject(string subjectAddress, int chainNetworkId);
     }
 }

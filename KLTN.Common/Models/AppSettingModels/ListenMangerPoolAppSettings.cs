@@ -13,6 +13,7 @@ namespace KLTN.Common.Models
         public string WssUrl { get; set; }
         public int ChainNetworkId { get; set; }
         public string ManagerPoolContractAddress { get; set; }
+        public string PrivateKey { get; set; }
         public static void SetValue(ListenMangerPoolAppSettings configuration)
         {
             var properties = configuration.GetType().GetProperties();

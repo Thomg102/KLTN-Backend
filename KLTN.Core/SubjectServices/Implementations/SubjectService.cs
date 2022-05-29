@@ -4,6 +4,7 @@ using KLTN.Common.Models;
 using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.DAL;
+using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,6 +24,7 @@ namespace KLTN.Core.SubjectServices.Implementations
         private readonly ILogger<SubjectService> _logger;
         private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Subject> _subject;
+        private readonly IMongoCollection<Student> _student;
 
         public SubjectService(ILogger<SubjectService> logger, IMongoDbContext context)
         {
@@ -30,6 +32,7 @@ namespace KLTN.Core.SubjectServices.Implementations
             _context = context;
 
             _subject = _context.GetCollection<Subject>(typeof(Subject).Name);
+            _student = _context.GetCollection<Student>(typeof(Student).Name);
         }
 
         // Get detail of specific subject Student/Lecturer/Admin
@@ -175,7 +178,8 @@ namespace KLTN.Core.SubjectServices.Implementations
                     EndTimeToComFirm = subject.EndTimeToComFirm,
                     MaxStudentAmount = subject.MaxStudentAmount,
                     LecturerAddress = subject.LecturerAddress,
-                    LecturerName = subject.LecturerName
+                    LecturerName = subject.LecturerName,
+                    JoinedStudentList = new List<JoinedStudentDTO>() { }
                 });
             }
             catch (Exception ex)
@@ -188,36 +192,142 @@ namespace KLTN.Core.SubjectServices.Implementations
         public async Task<List<string>> GetSubjectListInProgress(int chainNetworkId)
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
-            var missionList = await _subject.AsQueryable()
+            var subjectList = await _subject.AsQueryable()
                 .Where(x => x.StartTime <= now && x.EndTimeToComFirm > now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.SubjectAddress)
                 .ToListAsync();
-            return missionList;
+            return subjectList;
         }
 
         public async Task UpdateStudentRegister(string subjectAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Subject>.Filter.Where(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Subject>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
+                {
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
 
+                await _subject.UpdateOneAsync(filter, update);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentRegister");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateStudentCancelRegister(string subjectAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Subject>.Filter.Where(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Subject>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
+                {
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
 
+                await _subject.UpdateOneAsync(filter, update);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentCancelRegister");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateLecturerConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                var Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var studentListCount = new int();
+                var filter = Builders<Subject>.Filter.Where(x =>
+                    x.SubjectAddress.ToLower() == subjectAddress.ToLower()
+                    && x.ChainNetworkId == chainNetworkId
+                );
+                foreach (var joinedStudentList in Subject.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
+                        {
 
+                            int index = (Subject.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
+
+                            await _subject.UpdateOneAsync(filter, update);
+                            studentListCount++;
+                            break;
+                        }
+                var joinedStudentAmount = Subject.JoinedStudentAmount;
+                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount + studentListCount);
+                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerConfirmComplete");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
-        public async Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, string studentAddress)
+        public async Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                var Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var studentListCount = new int();
+                var filter = Builders<Subject>.Filter.Where(x =>
+                                x.SubjectAddress.ToLower() == subjectAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                foreach (var joinedStudentList in Subject.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        {
+                            var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 
+                            await _subject.UpdateOneAsync(filter, update);
+                            studentListCount++;
+                            break;
+                        }
+                var joinedStudentAmount = Subject.JoinedStudentAmount;
+                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount - studentListCount);
+                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerUnConfirmComplete");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task CloseSubject(string subjectAddress, int chainNetworkId)
         {
-
+            try
+            {
+                var subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Subject>.Filter.Where(x =>
+                                x.SubjectAddress.ToLower() == subjectAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                var update = Builders<Subject>.Update.Set(x => x.SubjectStatus, Status.Closed.ToString());
+                await _subject.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CloseSubject");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using KLTN.Common.Models;
 using KLTN.Core.ScholarshipServices.DTOs;
 using KLTN.Core.ScholarshipServices.Interfaces;
 using KLTN.DAL;
+using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -164,7 +165,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                     EndTime = scholarship.EndTime,
                     LecturerInCharge = scholarship.LecturerInCharge,
                     LecturerName = scholarship.LecturerName,
-                    TokenAmount = scholarship.TokenAmount
+                    TokenAmount = scholarship.TokenAmount,
+                    JoinedStudentList = new List<JoinedStudentDTO>() { }
                 });
             }
             catch (Exception ex)
@@ -186,17 +188,54 @@ namespace KLTN.Core.ScholarshipServices.Implementations
 
         public async Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
         {
-
+            try
+            {
+                foreach (var studentAddress in studentAddressList)
+                {
+                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                    if (student != null)
+                    {
+                        var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var update = Builders<Scholarship>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
+                        {
+                            StudentAddress = studentAddress.ToLower(),
+                            StudentId = student.StudentId,
+                            StudentName = student.StudentName,
+                            IsCompleted = false,
+                        });
+                        await _scholarship.UpdateOneAsync(filter, update);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddStudentToScholarship");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
-        public async Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, string studentAddress)
+        public async Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
         {
 
         }
 
         public async Task CloseScholarship(string scholarshipAddress, int chainNetworkId)
         {
-
+            try
+            {
+                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Scholarship>.Filter.Where(x =>
+                                x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                var update = Builders<Scholarship>.Update.Set(x => x.ScholarshipStatus, Status.Closed.ToString());
+                await _scholarship.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CloseScholarship");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
     }
 }

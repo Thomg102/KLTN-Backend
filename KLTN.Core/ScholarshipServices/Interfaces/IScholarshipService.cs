@@ -14,7 +14,7 @@ namespace KLTN.Core.ScholarshipServices.Interfaces
         Task CreateNewScholarship(ScholarshipDTO scholarship);
         Task<List<string>> GetScholarshipListInProgress(int chainNetworkId);
         Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList);
-        Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, string studentAddress);
+        Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseScholarship(string scholarshipAddress, int chainNetworkId);
     }
 }

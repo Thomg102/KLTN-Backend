@@ -22,6 +22,7 @@ using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.RPC.Reactive.Eth;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
+using Nethereum.Web3.Accounts;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace KLTN.ManagerPoolListen
         private readonly IServiceScopeFactory _services;
         private readonly ILogger<Worker> _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
-        Nethereum.Web3.Web3 web3 = new Nethereum.Web3.Web3(ListenMangerPoolAppSettings.Value.RpcUrl);
+        Nethereum.Web3.Web3 _web3 = new Nethereum.Web3.Web3();
         string managerPoolAddress = ListenMangerPoolAppSettings.Value.ManagerPoolContractAddress;
         int chainNetworkId = ListenMangerPoolAppSettings.Value.ChainNetworkId;
 
@@ -53,6 +54,7 @@ namespace KLTN.ManagerPoolListen
             _services = serviceScopeFactory;
             _hostApplicationLifetime = hostApplicationLifetime;
             _context = context;
+            _web3 = new Nethereum.Web3.Web3(new Account(ListenMangerPoolAppSettings.Value.PrivateKey), ListenMangerPoolAppSettings.Value.RpcUrl);
             _subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
             var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
             foreach (var subcribedContract in subcribedContractsList)
@@ -112,7 +114,7 @@ namespace KLTN.ManagerPoolListen
             {
                 try
                 {
-                    myFunctionTxn = await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash);
+                    myFunctionTxn = await _web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(transactionHash);
                 }
                 catch (Exception)
                 {
@@ -128,7 +130,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenNewTuitionEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<NewTuitionEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<NewTuitionEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -166,7 +168,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenNewScholarshipEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<NewScholarshipEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<NewScholarshipEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -203,7 +205,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenNewSubjectEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<NewSubjectEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -243,7 +245,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenNewMissionEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<NewMissionEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -284,7 +286,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenAddLecturerEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<AddLecturerInfoEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -318,7 +320,7 @@ namespace KLTN.ManagerPoolListen
         private async Task ListenAddStudentEvent(StreamingWebSocketClient client)
         {
             Console.WriteLine(managerPoolAddress);
-            var filter = web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<AddStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -360,7 +362,7 @@ namespace KLTN.ManagerPoolListen
 
         private async Task ListenUpdateStudentInfoEvent(StreamingWebSocketClient client)
         {
-            var filter = web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<UpdateStudentInfoEventDTO>(managerPoolAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                          Subscribe(async log =>
@@ -410,18 +412,20 @@ namespace KLTN.ManagerPoolListen
                         minute = 0;
                     });
                     await handler.SendRequestAsync();
+                    await ListenSubcribedContractReadyToCloseAsync();
                 }
                 minute++;
                 if (minute >= 10)
                 {
-                    _logger.LogCritical("Restart beacause not receive any thing from wss");
+                    _logger.LogCritical("Restart because not receive any thing from wss");
                     _hostApplicationLifetime.StopApplication();
                 }
 
-                await Task.Delay(15000, stoppingToken);
+                await Task.Delay(1000, stoppingToken);
             }
         }
 
+        #region MISSION
         private async Task ListenActiveMissionContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -432,7 +436,7 @@ namespace KLTN.ManagerPoolListen
                     var listMissionAddresses = await scopedProcessingService.GetMissionListInProgress(chainNetworkId);
                     foreach (var address in listMissionAddresses)
                     {
-                        if (!subcribedContracts.Contains(address))
+                        if (subcribedContracts.Contains(address))
                             await FollowMissionCompetitionAsync(client, address);
                     }
                 }
@@ -529,8 +533,8 @@ namespace KLTN.ManagerPoolListen
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
                                  var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
-                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(missionContractAddress, chainNetworkId, decoded.Event.StudentAddr);
+                                 var inputData = new UnConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(missionContractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Unconfirm Mission successfully with Contract: " + missionContractAddress);
                              }
                          }
@@ -558,6 +562,10 @@ namespace KLTN.ManagerPoolListen
                                  await subscriptionConfirm.UnsubscribeAsync();
                                  await subscriptionUnConfirm.UnsubscribeAsync();
                                  await subscriptionClose.UnsubscribeAsync();
+
+                                 subcribedContracts.Remove(missionContractAddress);
+                                 var filter = Builders<SubcribedContractsListenEvent>.Filter.Where(x => x.SubcribedContracts.ToLower() == missionContractAddress.ToLower());
+                                 await _subcribedContractsListenEvent.DeleteOneAsync(filter);
                              }
                          }
                          catch (Exception ex)
@@ -577,11 +585,11 @@ namespace KLTN.ManagerPoolListen
                 subscriptionClose.GetSubscribeResponseAsObservable()
                     .Subscribe(id => _logger.LogInformation($"Subscribed event Close Mission with Contract: {missionContractAddress}"));
 
-                var filterRegister = web3.Eth.GetEvent<RegisterEventDTO>(missionContractAddress).CreateFilterInput();
-                var filterCancelRegister = web3.Eth.GetEvent<CancelRegisterEventDTO>(missionContractAddress).CreateFilterInput();
-                var filterConfirm = web3.Eth.GetEvent<ConfirmEventDTO>(missionContractAddress).CreateFilterInput();
-                var filterUnConfirm = web3.Eth.GetEvent<UnConfirmEventDTO>(missionContractAddress).CreateFilterInput();
-                var filterClose = web3.Eth.GetEvent<CloseEventDTO>(missionContractAddress).CreateFilterInput();
+                var filterRegister = _web3.Eth.GetEvent<RegisterEventDTO>(missionContractAddress).CreateFilterInput();
+                var filterCancelRegister = _web3.Eth.GetEvent<CancelRegisterEventDTO>(missionContractAddress).CreateFilterInput();
+                var filterConfirm = _web3.Eth.GetEvent<ConfirmEventDTO>(missionContractAddress).CreateFilterInput();
+                var filterUnConfirm = _web3.Eth.GetEvent<UnConfirmEventDTO>(missionContractAddress).CreateFilterInput();
+                var filterClose = _web3.Eth.GetEvent<CloseEventDTO>(missionContractAddress).CreateFilterInput();
 
                 await subScriptionRegister.SubscribeAsync(filterRegister);
                 await subscriptionCancelRegister.SubscribeAsync(filterCancelRegister);
@@ -595,7 +603,32 @@ namespace KLTN.ManagerPoolListen
                 _logger.LogError(ex, "Follow Mission Contract Async exception: ");
             }
         }
+        private async Task ListenSubcribedContractReadyToCloseAsync()
+        {
+            try
+            {
+                foreach (var subcribedContract in subcribedContracts)
+                {
+                    var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
+                    .QueryAsync<bool>(subcribedContract);
+                    if (isReadyToClose)
+                    {
+                        var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
+                        var closeSubcribedContract = new Close() { };
+                        var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(subcribedContract, closeSubcribedContract);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("UNKNOWN: ", ex);
+            }
+        }
 
+
+        #endregion
+
+        #region SUBJECT
         private async Task ListenActiveSubjectContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -606,7 +639,7 @@ namespace KLTN.ManagerPoolListen
                     var listAddresses = await scopedProcessingService.GetSubjectListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
-                        if (!subcribedContracts.Contains(address))
+                        if (subcribedContracts.Contains(address))
                             await FollowSubjectCompetitionAsync(client, address);
                     }
                 }
@@ -702,7 +735,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
-                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new UnConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Unconfirm Subject successfully with Contract: " + contractAddress);
                              }
                          }
@@ -730,6 +765,10 @@ namespace KLTN.ManagerPoolListen
                                  await subscriptionConfirm.UnsubscribeAsync();
                                  await subscriptionUnConfirm.UnsubscribeAsync();
                                  await subscriptionClose.UnsubscribeAsync();
+
+                                 subcribedContracts.Remove(contractAddress);
+                                 var filter = Builders<SubcribedContractsListenEvent>.Filter.Where(x => x.SubcribedContracts.ToLower() == contractAddress.ToLower());
+                                 await _subcribedContractsListenEvent.DeleteOneAsync(filter);
                              }
                          }
                          catch (Exception ex)
@@ -749,11 +788,11 @@ namespace KLTN.ManagerPoolListen
                 subscriptionClose.GetSubscribeResponseAsObservable()
                     .Subscribe(id => _logger.LogInformation($"Subscribed event Close Subject with Contract: {contractAddress}"));
 
-                var filterRegister = web3.Eth.GetEvent<RegisterEventDTO>(contractAddress).CreateFilterInput();
-                var filterCancelRegister = web3.Eth.GetEvent<CancelRegisterEventDTO>(contractAddress).CreateFilterInput();
-                var filterConfirm = web3.Eth.GetEvent<ConfirmEventDTO>(contractAddress).CreateFilterInput();
-                var filterUnConfirm = web3.Eth.GetEvent<UnConfirmEventDTO>(contractAddress).CreateFilterInput();
-                var filterClose = web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
+                var filterRegister = _web3.Eth.GetEvent<RegisterEventDTO>(contractAddress).CreateFilterInput();
+                var filterCancelRegister = _web3.Eth.GetEvent<CancelRegisterEventDTO>(contractAddress).CreateFilterInput();
+                var filterConfirm = _web3.Eth.GetEvent<ConfirmEventDTO>(contractAddress).CreateFilterInput();
+                var filterUnConfirm = _web3.Eth.GetEvent<UnConfirmEventDTO>(contractAddress).CreateFilterInput();
+                var filterClose = _web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
 
                 await subScriptionRegister.SubscribeAsync(filterRegister);
                 await subscriptionCancelRegister.SubscribeAsync(filterCancelRegister);
@@ -767,6 +806,7 @@ namespace KLTN.ManagerPoolListen
                 _logger.LogError(ex, "Follow Subject Contract Async exception: ");
             }
         }
+        #endregion
 
         private async Task ListenActiveScholarshipContract(StreamingWebSocketClient client)
         {
@@ -778,7 +818,7 @@ namespace KLTN.ManagerPoolListen
                     var listAddresses = await scopedProcessingService.GetScholarshipListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
-                        if (!subcribedContracts.Contains(address))
+                        if (subcribedContracts.Contains(address))
                             await FollowScholarshipCompetitionAsync(client, address);
                     }
                 }
@@ -809,7 +849,7 @@ namespace KLTN.ManagerPoolListen
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
                                  var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 var inputData = new AddStudentToScholarship().DecodeTransaction(myFunctionTxn);
                                  await scopedProcessingService.AddStudentToScholarship(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Add Student To Scholarship Event successfully with Contract: " + contractAddress);
                              }
@@ -830,7 +870,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 await scopedProcessingService.RemoveStudentFromScholarship(contractAddress, chainNetworkId, decoded.Event.StudentsAdr);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new RemoveStudentFromScholarship().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.RemoveStudentFromScholarship(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Remove Student From Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -856,6 +898,10 @@ namespace KLTN.ManagerPoolListen
                                  await subScriptionAddStudentToScholarship.UnsubscribeAsync();
                                  await subscriptionRemoveStudentFromScholarship.UnsubscribeAsync();
                                  await subscriptionClose.UnsubscribeAsync();
+
+                                 subcribedContracts.Remove(contractAddress);
+                                 var filter = Builders<SubcribedContractsListenEvent>.Filter.Where(x => x.SubcribedContracts.ToLower() == contractAddress.ToLower());
+                                 await _subcribedContractsListenEvent.DeleteOneAsync(filter);
                              }
                          }
                          catch (Exception ex)
@@ -871,9 +917,9 @@ namespace KLTN.ManagerPoolListen
                 subscriptionClose.GetSubscribeResponseAsObservable()
                     .Subscribe(id => _logger.LogInformation($"Subscribed event Close Scholarship with Contract: {contractAddress}"));
 
-                var filterRegister = web3.Eth.GetEvent<AddStudentToScholarshipEventDTO>(contractAddress).CreateFilterInput();
-                var filterCancelRegister = web3.Eth.GetEvent<RemoveStudentFromScholarshipEventDTO>(contractAddress).CreateFilterInput();
-                var filterClose = web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
+                var filterRegister = _web3.Eth.GetEvent<AddStudentToScholarshipEventDTO>(contractAddress).CreateFilterInput();
+                var filterCancelRegister = _web3.Eth.GetEvent<RemoveStudentFromScholarshipEventDTO>(contractAddress).CreateFilterInput();
+                var filterClose = _web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
 
                 await subScriptionAddStudentToScholarship.SubscribeAsync(filterRegister);
                 await subscriptionRemoveStudentFromScholarship.SubscribeAsync(filterCancelRegister);
@@ -896,7 +942,7 @@ namespace KLTN.ManagerPoolListen
                     var listAddresses = await scopedProcessingService.GetTuitionListInProgress(chainNetworkId);
                     foreach (var address in listAddresses)
                     {
-                        if (!subcribedContracts.Contains(address))
+                        if (subcribedContracts.Contains(address))
                             await FollowTuitionCompetitionAsync(client, address);
                     }
                 }
@@ -928,7 +974,7 @@ namespace KLTN.ManagerPoolListen
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
                                  var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 var inputData = new AddStudentToTuition().DecodeTransaction(myFunctionTxn);
                                  await scopedProcessingService.AddStudentToTuition(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Add Student To Tuition Event successfully with Contract: " + contractAddress);
                              }
@@ -949,7 +995,9 @@ namespace KLTN.ManagerPoolListen
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
-                                 await scopedProcessingService.RemoveStudentFromTuition(contractAddress, chainNetworkId, decoded.Event.StudentsAddr);
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new RemoveStudentFromTuition().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.RemoveStudentFromTuition(contractAddress, chainNetworkId, inputData.StudentList);
                                  _logger.LogInformation("Store Remove Student From Tuition Event successfully with Contract: " + contractAddress);
                              }
                          }
@@ -996,6 +1044,10 @@ namespace KLTN.ManagerPoolListen
                                  await subscriptionRemoveStudentFromTuition.UnsubscribeAsync();
                                  await subscriptionPayment.UnsubscribeAsync();
                                  await subscriptionClose.UnsubscribeAsync();
+
+                                 subcribedContracts.Remove(contractAddress);
+                                 var filter = Builders<SubcribedContractsListenEvent>.Filter.Where(x => x.SubcribedContracts.ToLower() == contractAddress.ToLower());
+                                 await _subcribedContractsListenEvent.DeleteOneAsync(filter);
                              }
                          }
                          catch (Exception ex)
@@ -1013,10 +1065,10 @@ namespace KLTN.ManagerPoolListen
                 subscriptionClose.GetSubscribeResponseAsObservable()
                     .Subscribe(id => _logger.LogInformation($"Subscribed event Close Tuition with Contract: {contractAddress}"));
 
-                var filterRegister = web3.Eth.GetEvent<AddStudentToTuitionEventDTO>(contractAddress).CreateFilterInput();
-                var filterCancelRegister = web3.Eth.GetEvent<RemoveStudentFromTuitionEventDTO>(contractAddress).CreateFilterInput();
-                var filterPayment = web3.Eth.GetEvent<PaymentEventDTO>(contractAddress).CreateFilterInput();
-                var filterClose = web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
+                var filterRegister = _web3.Eth.GetEvent<AddStudentToTuitionEventDTO>(contractAddress).CreateFilterInput();
+                var filterCancelRegister = _web3.Eth.GetEvent<RemoveStudentFromTuitionEventDTO>(contractAddress).CreateFilterInput();
+                var filterPayment = _web3.Eth.GetEvent<PaymentEventDTO>(contractAddress).CreateFilterInput();
+                var filterClose = _web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
 
                 await subScriptionAddStudentToTuition.SubscribeAsync(filterRegister);
                 await subscriptionRemoveStudentFromTuition.SubscribeAsync(filterCancelRegister);

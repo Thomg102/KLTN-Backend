@@ -6,8 +6,8 @@ using System.Text;
 
 namespace KLTN.Common.SmartContracts.Functions.MissionContract
 {
-    [Function("confirmCompletedAddress")]
-    public class ConfirmCompletedAddress : FunctionMessage
+    [Function("removeStudentFromScholarship")]
+    public class RemoveStudentFromScholarship : FunctionMessage
     {
         [Parameter("address[]", "_students", 1)]
         public List<string> StudentList { get; set; }

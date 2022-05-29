@@ -3,6 +3,7 @@ using KLTN.Core.MissionServices.DTOs;
 using KLTN.Core.MissionServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebAPI.Models;
 using WebAPI.Utils.Constants;
@@ -53,6 +54,27 @@ namespace KLTN.WebAPI.Controllers
         public JsonResult CreateNewMission([FromBody] MissionDTO mission)
         {
             _missionService.CreateNewMission(mission);
+            return new JsonResult(new SuccessResponseModel());
+        }
+
+        [HttpPost("UpdateStudentRegister/{missionAddress}/{chainNetworkId}")]
+        public JsonResult UpdateStudentRegister(string missionAddress, int chainNetworkId, [FromBody] string studentAddress)
+        {
+            _missionService.UpdateStudentRegister(missionAddress, chainNetworkId, studentAddress);
+            return new JsonResult(new SuccessResponseModel());
+        }
+
+        [HttpPost("UpdateStudentCancelRegister/{missionAddress}/{chainNetworkId}")]
+        public JsonResult UpdateStudentCancelRegister(string missionAddress, int chainNetworkId, [FromBody] string studentAddress)
+        {
+            _missionService.UpdateStudentCancelRegister(missionAddress, chainNetworkId, studentAddress);
+            return new JsonResult(new SuccessResponseModel());
+        }
+
+        [HttpPost("UpdateLecturerConfirmComplete/{missionAddress}/{chainNetworkId}")]
+        public JsonResult UpdateLecturerConfirmComplete( string missionAddress, int chainNetworkId, [FromBody] List<string> studentList)
+        {
+            _missionService.UpdateLecturerConfirmComplete(missionAddress, chainNetworkId, studentList);
             return new JsonResult(new SuccessResponseModel());
         }
     }

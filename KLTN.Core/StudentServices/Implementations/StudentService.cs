@@ -5,6 +5,7 @@ using KLTN.Core.StudentServices.DTOs;
 using KLTN.Core.StudentServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models;
+using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -236,7 +237,8 @@ namespace KLTN.Core.StudentServices.Implementations
                     PlaceOfNationalId = student.PlaceOfNationalId,
                     PermanentAddress = student.PermanentAddress,
                     StudentHashIPFS = student.StudentHashIPFS,
-                    DepartmentShortenName = student.DepartmentShortenName
+                    DepartmentShortenName = student.DepartmentShortenName,
+                    ProductOfStudentList = new List<ProductOfStudentDTO>() { }
                 });
             }
             catch (Exception ex)

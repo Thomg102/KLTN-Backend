@@ -59,7 +59,7 @@ namespace KLTN.ManagerPoolListen
                 options.DatabaseName = configuration.DatabaseName;
             });
 
-            services.AddScoped<IMongoDbContext, MongoDbContext>();
+            services.AddSingleton<IMongoDbContext, MongoDbContext>();
             services.AddScoped<IMissionService, MissionService>();
             services.AddScoped<ITuitionService, TuitionService>();
             services.AddScoped<ISubjectService, SubjectService>();

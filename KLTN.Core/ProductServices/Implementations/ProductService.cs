@@ -89,7 +89,7 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get detail of specific product on sale Student/Admin
-        public ProductDetailResponseDTO GetDetailOfProductOnSale(string productId, string studentAddress, string _adminAddress)
+        public ProductDetailResponseDTO GetDetailOfProductOnSale(string productId, string studentAddress, string adminAddress)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace KLTN.Core.ProductServices.Implementations
                 if (studentAddress == null)
                     product = _product.Find<ProductOnSale>(x => x.ProductId.ToLower() == productId.ToLower() && x.SaleAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
                 else
-                    product = _product.Find<ProductOnSale>(x => x.ProductId.ToLower() == productId.ToLower() && x.SaleAddress.ToLower() == _adminAddress.ToLower()).FirstOrDefault();
+                    product = _product.Find<ProductOnSale>(x => x.ProductId.ToLower() == productId.ToLower() && x.SaleAddress.ToLower() == adminAddress.ToLower()).FirstOrDefault();
                 if (product != null)
                     return new ProductDetailResponseDTO()
                     {
@@ -118,14 +118,14 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get list of product On sale Student/Admin
-        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress, string _adminAddress)
+        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress, string adminAddress)
         {
             try
             {
                 var result = new List<ProductDetailResponseDTO>();
                 var productList = new List<ProductOnSale>();
                 if (studentAddress == null)
-                    productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == _adminAddress.ToLower()).ToList();
+                    productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == adminAddress.ToLower()).ToList();
                 else
                     productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == studentAddress.ToLower()).ToList();
                 if (productList != null && productList.Count > 0)

@@ -4,6 +4,7 @@ using KLTN.Common.Models;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
 using KLTN.DAL;
+using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -140,6 +141,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                     CurrencyAmount = tuition.CurrencyAmount,
                     LecturerInCharge = tuition.LecturerInCharge,
                     LecturerName = tuition.LecturerName,
+                    JoinedStudentList = new List<JoinedStudentDTO>() { }
                 });
             }
             catch (Exception ex)
@@ -153,7 +155,7 @@ namespace KLTN.Core.TuitionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var titionList = await _tuition.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetwork == chainNetworkId)
+                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.TuitionAddress)
                 .ToListAsync();
             return titionList;
@@ -164,7 +166,7 @@ namespace KLTN.Core.TuitionServices.Implementations
 
         }
 
-        public async Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, string studentAddress)
+        public async Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, List<string> studentAddressList)
         {
 
         }

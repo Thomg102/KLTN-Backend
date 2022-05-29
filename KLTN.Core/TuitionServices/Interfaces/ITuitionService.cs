@@ -13,7 +13,7 @@ namespace KLTN.Core.TuitionServices.Interfaces
         Task CreateNewTuition(TuitionDTO tuition);
         Task<List<string>> GetTuitionListInProgress(int chainNetworkId);
         Task AddStudentToTuition(string tuitionpAddress, int chainNetworkId, List<string> studentAddressList);
-        Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, string studentAddress);
+        Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, List<string> studentAddress);
         Task UpdateStudentCompeletedPayment(string tuitionAddress, int chainNetworkId, string studentAddress);
         Task CloseTuition(string tuitionAddress, int chainNetworkId);
     }
