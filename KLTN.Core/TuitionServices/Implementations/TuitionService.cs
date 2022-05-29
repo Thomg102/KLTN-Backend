@@ -163,22 +163,113 @@ namespace KLTN.Core.TuitionServices.Implementations
 
         public async Task AddStudentToTuition(string tuitionpAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                foreach (var studentAddress in studentAddressList)
+                {
+                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                    if (student != null)
+                    {
+                        var filter = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var update = Builders<Tuition>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
+                        {
+                            StudentAddress = studentAddress.ToLower(),
+                            StudentId = student.StudentId,
+                            StudentName = student.StudentName,
+                            IsCompleted = false,
+                        });
+                        await _tuition.UpdateOneAsync(filter, update);
+                    }
+                }
 
+                var tuition = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, tuition.JoinedStudentAmount + 1);
+                await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddStudentToTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                foreach (var studentAddress in studentAddressList)
+                {
+                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                    if (student != null)
+                    {
+                        var filter = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var update = Builders<Tuition>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
+                        {
+                            StudentAddress = studentAddress.ToLower(),
+                            StudentId = student.StudentId,
+                            StudentName = student.StudentName,
+                            IsCompleted = false,
+                        });
+                        await _tuition.UpdateOneAsync(filter, update);
+                    }
+                }
 
+                var scholarship = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount - 1);
+                await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RemoveStudentFromTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task UpdateStudentCompeletedPayment(string tuitionAddress, int chainNetworkId, string studentAddress)
         {
+            try
+            {
+                var Subject = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Tuition>.Filter.Where(x =>
+                    x.TuitionAddress.ToLower() == tuitionAddress.ToLower()
+                    && x.ChainNetworkId == chainNetworkId
+                );
+                foreach (var joinedStudentList in Subject.JoinedStudentList)
+                    if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
+                    {
 
+                        int index = (Subject.JoinedStudentList).IndexOf(joinedStudentList);
+                        var update = Builders<Tuition>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
+
+                        await _tuition.UpdateOneAsync(filter, update);
+                        break;
+                    }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateStudentCompeletedPayment");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task CloseTuition(string tuitionAddress, int chainNetworkId)
         {
-
+            try
+            {
+                var filter = Builders<Tuition>.Filter.Where(x =>
+                                x.TuitionAddress.ToLower() == tuitionAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                var update = Builders<Tuition>.Update.Set(x => x.TuitionAddress, Status.Closed.ToString());
+                await _tuition.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CloseTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
     }
 }

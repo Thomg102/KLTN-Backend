@@ -421,7 +421,7 @@ namespace KLTN.ManagerPoolListen
                     _hostApplicationLifetime.StopApplication();
                 }
 
-                await Task.Delay(1000, stoppingToken);
+                await Task.Delay(15000, stoppingToken);
             }
         }
 

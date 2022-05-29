@@ -241,6 +241,9 @@ namespace KLTN.Core.MissionServices.Implementations
 
                 await _mission.UpdateOneAsync(filter, update);
 
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount + 1);
+                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -262,9 +265,11 @@ namespace KLTN.Core.MissionServices.Implementations
                     StudentName = student.StudentName,
                     IsCompleted = false,
                 });
-
                 await _mission.UpdateOneAsync(filter, update);
 
+                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount - 1);
+                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -278,7 +283,6 @@ namespace KLTN.Core.MissionServices.Implementations
             try
             {
                 var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var studentListCount = new int();
                 var filter = Builders<Mission>.Filter.Where(x =>
                     x.MissionAddress.ToLower() == missionAddress.ToLower()
                     && x.ChainNetworkId == chainNetworkId
@@ -292,12 +296,8 @@ namespace KLTN.Core.MissionServices.Implementations
                                 var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
 
                                 await _mission.UpdateOneAsync(filter, update);
-                                studentListCount++;
                                 break;
                             }
-                var joinedStudentAmount = mission.JoinedStudentAmount;
-                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount + studentListCount);
-                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -311,7 +311,6 @@ namespace KLTN.Core.MissionServices.Implementations
             try
             {
                 var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var studentListCount = new int();
                 var filter = Builders<Mission>.Filter.Where(x =>
                                 x.MissionAddress.ToLower() == missionAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId
@@ -323,12 +322,8 @@ namespace KLTN.Core.MissionServices.Implementations
                             var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 
                             await _mission.UpdateOneAsync(filter, update);
-                            studentListCount++;
                             break;
                         }
-                var joinedStudentAmount = mission.JoinedStudentAmount;
-                var updateJoinedStudentAmount = Builders<Mission>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount - studentListCount);
-                await _mission.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -341,7 +336,6 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             try
             {
-                var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
                 var filter = Builders<Mission>.Filter.Where(x =>
                                 x.MissionAddress.ToLower() == missionAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId

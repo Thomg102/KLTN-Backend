@@ -215,6 +215,9 @@ namespace KLTN.Core.SubjectServices.Implementations
 
                 await _subject.UpdateOneAsync(filter, update);
 
+                var mission = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount + 1);
+                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -239,6 +242,9 @@ namespace KLTN.Core.SubjectServices.Implementations
 
                 await _subject.UpdateOneAsync(filter, update);
 
+                var mission = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount - 1);
+                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -252,7 +258,6 @@ namespace KLTN.Core.SubjectServices.Implementations
             try
             {
                 var Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var studentListCount = new int();
                 var filter = Builders<Subject>.Filter.Where(x =>
                     x.SubjectAddress.ToLower() == subjectAddress.ToLower()
                     && x.ChainNetworkId == chainNetworkId
@@ -266,12 +271,8 @@ namespace KLTN.Core.SubjectServices.Implementations
                             var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
 
                             await _subject.UpdateOneAsync(filter, update);
-                            studentListCount++;
                             break;
                         }
-                var joinedStudentAmount = Subject.JoinedStudentAmount;
-                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount + studentListCount);
-                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -285,7 +286,6 @@ namespace KLTN.Core.SubjectServices.Implementations
             try
             {
                 var Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var studentListCount = new int();
                 var filter = Builders<Subject>.Filter.Where(x =>
                                 x.SubjectAddress.ToLower() == subjectAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId
@@ -297,12 +297,8 @@ namespace KLTN.Core.SubjectServices.Implementations
                             var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 
                             await _subject.UpdateOneAsync(filter, update);
-                            studentListCount++;
                             break;
                         }
-                var joinedStudentAmount = Subject.JoinedStudentAmount;
-                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, joinedStudentAmount - studentListCount);
-                await _subject.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -315,7 +311,6 @@ namespace KLTN.Core.SubjectServices.Implementations
         {
             try
             {
-                var subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
                 var filter = Builders<Subject>.Filter.Where(x =>
                                 x.SubjectAddress.ToLower() == subjectAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId

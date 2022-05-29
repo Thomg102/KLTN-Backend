@@ -206,6 +206,11 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                         await _scholarship.UpdateOneAsync(filter, update);
                     }
                 }
+
+                var scholarship = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filterJoinedStudentAmount = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount + 1);
+                await _scholarship.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -216,14 +221,41 @@ namespace KLTN.Core.ScholarshipServices.Implementations
 
         public async Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
         {
+            try
+            {
+                foreach (var studentAddress in studentAddressList)
+                {
+                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                    if (student != null)
+                    {
+                        var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var update = Builders<Scholarship>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
+                        {
+                            StudentAddress = studentAddress.ToLower(),
+                            StudentId = student.StudentId,
+                            StudentName = student.StudentName,
+                            IsCompleted = false,
+                        });
+                        await _scholarship.UpdateOneAsync(filter, update);
+                    }
+                }
 
+                var scholarship = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filterJoinedStudentAmount = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount - 1);
+                await _scholarship.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RemoveStudentFromScholarship");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
 
         public async Task CloseScholarship(string scholarshipAddress, int chainNetworkId)
         {
             try
             {
-                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
                 var filter = Builders<Scholarship>.Filter.Where(x =>
                                 x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId
