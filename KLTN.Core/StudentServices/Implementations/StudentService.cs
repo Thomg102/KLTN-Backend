@@ -75,6 +75,8 @@ namespace KLTN.Core.StudentServices.Implementations
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
+                                Type = "missions",
+                                ContractAddress = mission.MissionAddress,
                                 HistoryName = mission.MissionName,
                                 Amount = mission.TokenAmount,
                                 SubmitTime = mission.EndTimeToComFirm
@@ -89,6 +91,8 @@ namespace KLTN.Core.StudentServices.Implementations
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
+                                Type = "tuitions",
+                                ContractAddress = tuition.TuitionAddress,
                                 HistoryName = tuition.TuitionName,
                                 Amount = tuition.TokenAmount * (-1),
                                 SubmitTime = tuition.EndTime
@@ -103,9 +107,11 @@ namespace KLTN.Core.StudentServices.Implementations
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
+                                Type = "scholarships",
+                                ContractAddress = scholarship.ScholarshipAddress,
                                 HistoryName = scholarship.ScholarshipName,
                                 Amount = scholarship.TokenAmount,
-                                //SubmitTime = scholarship.EndTimeToComFirm
+                                SubmitTime = scholarship.EndTime
                             });
                             break;
                         }
@@ -137,6 +143,8 @@ namespace KLTN.Core.StudentServices.Implementations
                         {
                             result.Add(new StudentCertificateDTO()
                             {
+                                Type = "subjects",
+                                ContractAddress = subject.SubjectAddress,
                                 CertificateName = subject.SubjectName,
                                 StartTime = subject.StartTime,
                                 EndTime = subject.EndTime
@@ -170,6 +178,8 @@ namespace KLTN.Core.StudentServices.Implementations
                         {
                             result.Add(new StudentCertificateDTO()
                             {
+                                Type = "missions",
+                                ContractAddress = mission.MissionAddress,
                                 CertificateName = mission.MissionName,
                                 StartTime = mission.StartTime,
                                 EndTime = mission.EndTime
