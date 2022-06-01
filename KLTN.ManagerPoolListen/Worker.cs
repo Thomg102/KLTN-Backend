@@ -437,19 +437,24 @@ namespace KLTN.ManagerPoolListen
                     foreach (var address in listMissionAddresses)
                     {
                         if (subcribedContracts.Contains(address))
-                            await FollowMissionCompetitionAsync(client, address);
+                            await FollowMissionCompetitionAsync(client, address, true);
+                        else
+                            await FollowMissionCompetitionAsync(client, address, false);
                     }
                 }
                 await Task.Delay(15000);
             }
         }
 
-        private async Task FollowMissionCompetitionAsync(StreamingWebSocketClient client, string missionContractAddress)
+        private async Task FollowMissionCompetitionAsync(StreamingWebSocketClient client, string missionContractAddress, bool isContainedInSubcribedContracts)
         {
             try
-            {
-                subcribedContracts.Add(missionContractAddress);
-                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress});
+            {   
+                if (!isContainedInSubcribedContracts)
+                {
+                    subcribedContracts.Add(missionContractAddress);
+                    await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress });
+                }
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -640,19 +645,24 @@ namespace KLTN.ManagerPoolListen
                     foreach (var address in listAddresses)
                     {
                         if (subcribedContracts.Contains(address))
-                            await FollowSubjectCompetitionAsync(client, address);
+                            await FollowSubjectCompetitionAsync(client, address, true);
+                        else
+                            await FollowSubjectCompetitionAsync(client, address, false);
                     }
                 }
                 await Task.Delay(15000);
             }
         }
 
-        private async Task FollowSubjectCompetitionAsync(StreamingWebSocketClient client, string contractAddress)
+        private async Task FollowSubjectCompetitionAsync(StreamingWebSocketClient client, string contractAddress, bool isContainedInSubcribedContracts)
         {
             try
             {
-                subcribedContracts.Add(contractAddress);
-                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                if (!isContainedInSubcribedContracts)
+                {
+                    subcribedContracts.Add(contractAddress);
+                    await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                }
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -819,19 +829,24 @@ namespace KLTN.ManagerPoolListen
                     foreach (var address in listAddresses)
                     {
                         if (subcribedContracts.Contains(address))
-                            await FollowScholarshipCompetitionAsync(client, address);
+                            await FollowScholarshipCompetitionAsync(client, address, true);
+                        else
+                            await FollowScholarshipCompetitionAsync(client, address, false);
                     }
                 }
                 await Task.Delay(15000);
             }
         }
 
-        private async Task FollowScholarshipCompetitionAsync(StreamingWebSocketClient client, string contractAddress)
+        private async Task FollowScholarshipCompetitionAsync(StreamingWebSocketClient client, string contractAddress, bool isContainedInSubcribedContracts)
         {
             try
             {
-                subcribedContracts.Add(contractAddress);
-                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                if (!isContainedInSubcribedContracts)
+                {
+                    subcribedContracts.Add(contractAddress);
+                    await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                }
 
                 var subScriptionAddStudentToScholarship = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromScholarship = new EthLogsObservableSubscription(client);
@@ -943,19 +958,24 @@ namespace KLTN.ManagerPoolListen
                     foreach (var address in listAddresses)
                     {
                         if (subcribedContracts.Contains(address))
-                            await FollowTuitionCompetitionAsync(client, address);
+                            await FollowTuitionCompetitionAsync(client, address, true);
+                        else
+                            await FollowTuitionCompetitionAsync(client, address, false);
                     }
                 }
                 await Task.Delay(15000);
             }
         }
 
-        private async Task FollowTuitionCompetitionAsync(StreamingWebSocketClient client, string contractAddress)
+        private async Task FollowTuitionCompetitionAsync(StreamingWebSocketClient client, string contractAddress, bool isContainedInSubcribedContracts)
         {
             try
             {
-                subcribedContracts.Add(contractAddress);
-                await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                if (!isContainedInSubcribedContracts)
+                {
+                    subcribedContracts.Add(contractAddress);
+                    await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
+                }
 
                 var subScriptionAddStudentToTuition = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromTuition = new EthLogsObservableSubscription(client);
