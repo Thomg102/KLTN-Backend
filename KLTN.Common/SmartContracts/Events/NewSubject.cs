@@ -8,7 +8,10 @@ namespace KLTN.Common.SmartContracts.Events
     [Event("NewSubject")]
     public class NewSubjectEventDTO : IEventDTO
     {
-        [Parameter("string", "_urlMetadata", 1, true)]
+        [Parameter("address", "_contractAddress", 1, false)]
+        public string ContractAddress { get; set; }
+
+        [Parameter("string", "_urlMetadata", 2, false)]
         public string UrlMetadata { get; set; }
     }
 }

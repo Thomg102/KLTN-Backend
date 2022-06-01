@@ -54,11 +54,13 @@ namespace KLTN.ManagerPoolListen
             _services = serviceScopeFactory;
             _hostApplicationLifetime = hostApplicationLifetime;
             _context = context;
-            _web3 = new Nethereum.Web3.Web3(new Account(ListenMangerPoolAppSettings.Value.PrivateKey), ListenMangerPoolAppSettings.Value.RpcUrl);
-            _subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
-            var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
-            foreach (var subcribedContract in subcribedContractsList)
-                subcribedContracts.Add(subcribedContract.SubcribedContracts);
+            var _account = new Account(ListenMangerPoolAppSettings.Value.PrivateKey, chainNetworkId);
+            _web3 = new Nethereum.Web3.Web3(_account, ListenMangerPoolAppSettings.Value.RpcUrl);
+            _web3.TransactionManager.UseLegacyAsDefault = true;
+            //_subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
+            //var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
+            //foreach (var subcribedContract in subcribedContractsList)
+            //subcribedContracts.Add(subcribedContract.SubcribedContracts);
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
         }
@@ -136,6 +138,7 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewTuitionEventDTO> decoded = Event<NewTuitionEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation($"Listening Add New Tuition {decoded.Event.ContractAddress}");
                              string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
                              var tuitionMetadata = JsonConvert.DeserializeObject<TuitionMetadataDTO>(jsonResponse);
                              using (var scope = _services.CreateScope())
@@ -147,7 +150,7 @@ namespace KLTN.ManagerPoolListen
                                      Img = tuitionMetadata.Img,
                                      TuitionId = tuitionMetadata.TuitionId,
                                      TuitionName = tuitionMetadata.Name,
-                                     TuitionAddress = decoded.Log.Address,
+                                     TuitionAddress = decoded.Event.ContractAddress,
                                      TuitionDescription = tuitionMetadata.Description,
                                      TuitionHashIPFS = decoded.Event.UrlMetadata,
                                      SchoolYear = DateTime.Now.Year,
@@ -159,7 +162,7 @@ namespace KLTN.ManagerPoolListen
                                      LecturerName = tuitionMetadata.LecturerName,
                                  });
                              }
-                             _logger.LogInformation($"Listening Add New Tuition {decoded.Log.Address}");
+                             _logger.LogInformation($"Stored New Tuition {decoded.Event.ContractAddress}");
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Tuition Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -174,6 +177,7 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewScholarshipEventDTO> decoded = Event<NewScholarshipEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation($"Listening Add New Scholarship {decoded.Event.ContractAddress}");
                              string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
                              var metadata = JsonConvert.DeserializeObject<ScholarshipMetadataDTO>(jsonResponse);
                              using (var scope = _services.CreateScope())
@@ -185,7 +189,7 @@ namespace KLTN.ManagerPoolListen
                                      ScholarshipId = metadata.ScholarshipId,
                                      ScholarshipImg = metadata.Img,
                                      ScholarshipName = metadata.Name,
-                                     ScholarshipAddress = decoded.Log.Address,
+                                     ScholarshipAddress = decoded.Event.ContractAddress,
                                      ScholarShipDescription = metadata.Description,
                                      ScholarshipHashIPFS = decoded.Event.UrlMetadata,
                                      StartTime = metadata.StartTime,
@@ -196,7 +200,7 @@ namespace KLTN.ManagerPoolListen
 
                                  });
                              }
-                             _logger.LogInformation($"Listening Add New Scholarship {decoded.Log.Address}");
+                             _logger.LogInformation($"Stored New Scholarship {decoded.Event.ContractAddress}");
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Scholarship Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -211,6 +215,7 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewSubjectEventDTO> decoded = Event<NewSubjectEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation($"Listening Add New Subject {decoded.Event.ContractAddress}");
                              string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
                              var metadata = JsonConvert.DeserializeObject<SubjectMetadataDTO>(jsonResponse);
                              using (var scope = _services.CreateScope())
@@ -221,7 +226,7 @@ namespace KLTN.ManagerPoolListen
                                      ChainNetworkId = chainNetworkId,
                                      SubjectId = metadata.ClassId,
                                      SubjectName = metadata.Name,
-                                     SubjectAddress = decoded.Log.Address,
+                                     SubjectAddress = decoded.Event.ContractAddress,
                                      SubjectShortenName = metadata.ShortName,
                                      SubjectImg = metadata.Img,
                                      SubjectDescription = metadata.Description,
@@ -236,7 +241,7 @@ namespace KLTN.ManagerPoolListen
                                      LecturerName = metadata.LecturerName,
                                  });
                              }
-                             _logger.LogInformation($"Listening Add New Subject {decoded.Log.Address}");
+                             _logger.LogInformation($"Stored New Subject {decoded.Event.ContractAddress}");
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Subject Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -251,6 +256,7 @@ namespace KLTN.ManagerPoolListen
                          Subscribe(async log =>
                          {
                              EventLog<NewMissionEventDTO> decoded = Event<NewMissionEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation($"Listening Add New Mission {decoded.Event.ContractAddress}");
                              string jsonResponse = await RequestIPFS(decoded.Event.UrlMetadata);
                              var metadata = JsonConvert.DeserializeObject<MissionMetadataDTO>(jsonResponse);
                              using (var scope = _services.CreateScope())
@@ -261,7 +267,7 @@ namespace KLTN.ManagerPoolListen
                                      ChainNetworkId = chainNetworkId,
                                      MissionId = metadata.MissionId,
                                      MissionName = metadata.Name,
-                                     MissionAddress = decoded.Log.Address,
+                                     MissionAddress = decoded.Event.ContractAddress,
                                      MissionShortenName = metadata.ShortName,
                                      MissionImg = metadata.Img,
                                      MissionDescription = metadata.Description,
@@ -277,7 +283,7 @@ namespace KLTN.ManagerPoolListen
                                      LecturerName = metadata.LecturerName,
                                  });
                              }
-                             _logger.LogInformation($"Listening Add New Mission {decoded.Log.Address}");
+                             _logger.LogInformation($"Stored New Mission {decoded.Event.ContractAddress}");
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Add New Mission Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
@@ -436,6 +442,8 @@ namespace KLTN.ManagerPoolListen
                     var listMissionAddresses = await scopedProcessingService.GetMissionListInProgress(chainNetworkId);
                     foreach (var address in listMissionAddresses)
                     {
+                        //if (!subcribedContracts.Contains(address))
+                        //    await FollowMissionCompetitionAsync(client, address);
                         if (subcribedContracts.Contains(address))
                             await FollowMissionCompetitionAsync(client, address, true);
                         else
@@ -455,6 +463,9 @@ namespace KLTN.ManagerPoolListen
                     subcribedContracts.Add(missionContractAddress);
                     await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress });
                 }
+            {
+                //subcribedContracts.Add(missionContractAddress);
+                //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress});
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -619,8 +630,10 @@ namespace KLTN.ManagerPoolListen
                     if (isReadyToClose)
                     {
                         var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
-                        var closeSubcribedContract = new Close() { };
-                        var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(subcribedContract, closeSubcribedContract);
+                        var closeSubcribedContract = new Close() {
+                            Pool= subcribedContract
+                        };
+                        var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
                     }
                 }
             }
@@ -629,8 +642,6 @@ namespace KLTN.ManagerPoolListen
                 throw new Exception("UNKNOWN: ", ex);
             }
         }
-
-
         #endregion
 
         #region SUBJECT
@@ -648,6 +659,8 @@ namespace KLTN.ManagerPoolListen
                             await FollowSubjectCompetitionAsync(client, address, true);
                         else
                             await FollowSubjectCompetitionAsync(client, address, false);
+                        //if (!subcribedContracts.Contains(address))
+                        //    await FollowSubjectCompetitionAsync(client, address);
                     }
                 }
                 await Task.Delay(15000);
@@ -663,6 +676,8 @@ namespace KLTN.ManagerPoolListen
                     subcribedContracts.Add(contractAddress);
                     await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
                 }
+                //subcribedContracts.Add(contractAddress);
+                //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionRegister = new EthLogsObservableSubscription(client);
                 var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
@@ -832,6 +847,8 @@ namespace KLTN.ManagerPoolListen
                             await FollowScholarshipCompetitionAsync(client, address, true);
                         else
                             await FollowScholarshipCompetitionAsync(client, address, false);
+                        //if (!subcribedContracts.Contains(address))
+                        //    await FollowScholarshipCompetitionAsync(client, address);
                     }
                 }
                 await Task.Delay(15000);
@@ -847,6 +864,8 @@ namespace KLTN.ManagerPoolListen
                     subcribedContracts.Add(contractAddress);
                     await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
                 }
+                //subcribedContracts.Add(contractAddress);
+                //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionAddStudentToScholarship = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromScholarship = new EthLogsObservableSubscription(client);
@@ -961,6 +980,8 @@ namespace KLTN.ManagerPoolListen
                             await FollowTuitionCompetitionAsync(client, address, true);
                         else
                             await FollowTuitionCompetitionAsync(client, address, false);
+                        //if (!subcribedContracts.Contains(address))
+                        //    await FollowTuitionCompetitionAsync(client, address);
                     }
                 }
                 await Task.Delay(15000);
@@ -976,6 +997,8 @@ namespace KLTN.ManagerPoolListen
                     subcribedContracts.Add(contractAddress);
                     await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
                 }
+                //subcribedContracts.Add(contractAddress);
+                //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
                 var subScriptionAddStudentToTuition = new EthLogsObservableSubscription(client);
                 var subscriptionRemoveStudentFromTuition = new EthLogsObservableSubscription(client);

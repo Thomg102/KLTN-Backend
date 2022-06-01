@@ -6,6 +6,7 @@ namespace KLTN.Core.SubjectServices.DTOs
 {
     public class StudentSubjectResponseDTO
     {
+        public string SubjectId { get; set; }
         public string SubjectName { get; set; }
         public string SubjectAddress { get; set; }
         public string SubjectShortenName { get; set; }

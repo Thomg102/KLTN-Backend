@@ -90,10 +90,11 @@ namespace KLTN.Core.MissionServices.Implementations
                     if (studentAddress != null)
                         foreach (var joinedStudentList in joinedMission.JoinedStudentList)
                         {
-                            if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                            if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                             {
                                 result.Add(new StudentMissionResponseDTO()
                                 {
+                                    MissionId = joinedMission.MissionId,
                                     MissionName = joinedMission.MissionName,
                                     MissionAddress = joinedMission.MissionAddress,
                                     MissionShortenName = joinedMission.MissionShortenName,
@@ -110,6 +111,7 @@ namespace KLTN.Core.MissionServices.Implementations
                     if (!isExistedJoinedStudent)
                         result.Add(new StudentMissionResponseDTO()
                         {
+                            MissionId = joinedMission.MissionId,
                             MissionName = joinedMission.MissionName,
                             MissionAddress = joinedMission.MissionAddress,
                             MissionShortenName = joinedMission.MissionShortenName,

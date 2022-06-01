@@ -87,10 +87,11 @@ namespace KLTN.Core.SubjectServices.Implementations
                     if (studentAddress != null)
                         foreach (var joinedStudentList in joinedSubject.JoinedStudentList)
                         {
-                            if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                            if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                             {
                                 result.Add(new StudentSubjectResponseDTO()
                                 {
+                                    SubjectId = joinedSubject.SubjectId,
                                     SubjectName = joinedSubject.SubjectName,
                                     SubjectAddress = joinedSubject.SubjectAddress,
                                     SubjectShortenName = joinedSubject.SubjectShortenName,
@@ -107,6 +108,7 @@ namespace KLTN.Core.SubjectServices.Implementations
                     if (!isExistedJoinedStudent)
                         result.Add(new StudentSubjectResponseDTO()
                         {
+                            SubjectId = joinedSubject.SubjectId,
                             SubjectName = joinedSubject.SubjectName,
                             SubjectAddress = joinedSubject.SubjectAddress,
                             SubjectShortenName = joinedSubject.SubjectShortenName,
