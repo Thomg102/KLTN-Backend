@@ -85,31 +85,35 @@ namespace KLTN.Core.TuitionServices.Implementations
                     if (studentAddress != null)
                         foreach (var joinedStudentList in joinedTuition.JoinedStudentList)
                         {
-                            if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                            if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                             {
                                 result.Add(new StudentTuitionResponseDTO()
                                 {
+                                    TuitionId = joinedTuition.TuitionId,
                                     TuitionName = joinedTuition.TuitionName,
                                     TuitionAddress = joinedTuition.TuitionAddress,
                                     JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
                                     TuitionStatus = joinedTuition.TuitionStatus,
                                     IsJoined = true,
-                                    StartTime = joinedTuition.StartTime
+                                    StartTime = joinedTuition.StartTime,
+                                    IsCompleted = joinedStudentList.IsCompleted,
                                 });
                                 isExistedJoinedStudent = true;
                                 break;
                             }
                         }
-                    if (!isExistedJoinedStudent)
+/*                    if (!isExistedJoinedStudent)
                         result.Add(new StudentTuitionResponseDTO()
                         {
+                            TuitionId = joinedTuition.TuitionId,
                             TuitionName = joinedTuition.TuitionName,
                             TuitionAddress = joinedTuition.TuitionAddress,
                             JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
                             TuitionStatus = joinedTuition.TuitionStatus,
                             IsJoined = false,
-                            StartTime = joinedTuition.StartTime
-                        });
+                            StartTime = joinedTuition.StartTime,
+                            IsCompleted = false
+                        }); */
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
             }

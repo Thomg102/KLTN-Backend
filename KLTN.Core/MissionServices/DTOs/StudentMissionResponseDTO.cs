@@ -6,6 +6,7 @@ namespace KLTN.Core.MissionServices.DTOs
 {
     public class StudentMissionResponseDTO
     {
+        public string MissionId { get; set; }
         public string MissionName { get; set; }
         public string MissionAddress { get; set;}
         public string MissionShortenName { get; set; }

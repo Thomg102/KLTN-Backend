@@ -6,6 +6,7 @@ namespace KLTN.Core.ScholarshipServices.DTOs
 {
     public class StudentScholarshipResponseDTO
     {
+        public string ScholarshipId { get; set; }
         public string ScholarshipName { get; set; }
         public string ScholarshipAddress { get; set; }
         public int JoinedStudentAmount { get; set; }
