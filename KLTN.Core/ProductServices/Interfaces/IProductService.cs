@@ -17,5 +17,8 @@ namespace KLTN.Core.ProductServices.Interfaces
         Task CreateNewProductOnSale(ProductOnSaleDTO product);
         Task ListProductOnSale(ProductStudentListOnSaleDTO product);
         Task DelistProductOnSale(ProductStudentDelistOnSaleDTO product);
+        Task BuyProductOnSale(ProductStudentBuyOnSaleDTO product);
+        Task UpdateBuyPriceProductOnSale(ProductUpdateBuyPriceOnSaleDTO product);
+        Task UpdateAmountProductOnSale(ProductUpdateAmountOnSaleDTO product);
     }
 }

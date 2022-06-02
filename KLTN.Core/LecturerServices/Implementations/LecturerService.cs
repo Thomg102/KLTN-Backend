@@ -78,18 +78,26 @@ namespace KLTN.Core.LecturerServicess.Implementations
         {
             try
             {
-                await _lecturer.InsertOneAsync(new Lecturer()
-                {
-                    LecturerImg = lecturer.LecturerImg,
-                    LecturerName = lecturer.LecturerName,
-                    LecturerId = lecturer.LecturerId,
-                    LecturerAddress = lecturer.LecturerAddress,
-                    DepartmentName = lecturer.DepartmentName,
-                    DepartmentShortenName = lecturer.DepartmentShortenName,
-                    Sex = lecturer.Sex,
-                    DateOfBirth = lecturer.DateOfBirth,
-                    LecturerHashIPFS = lecturer.LecturerHashIPFS
-                });
+                var isExisted = false;
+                var lecturerList = _lecturer.Find<Lecturer>(_ => true).ToList();
+                foreach (var lecturerInfo in lecturerList)
+                    if (lecturerInfo.LecturerAddress.ToLower() == lecturer.LecturerAddress.ToLower())
+                        isExisted = true;
+                if (!isExisted)
+                    await _lecturer.InsertOneAsync(new Lecturer()
+                    {
+                        LecturerImg = lecturer.LecturerImg,
+                        LecturerName = lecturer.LecturerName,
+                        LecturerId = lecturer.LecturerId,
+                        LecturerAddress = lecturer.LecturerAddress,
+                        DepartmentName = lecturer.DepartmentName,
+                        DepartmentShortenName = lecturer.DepartmentShortenName,
+                        Sex = lecturer.Sex,
+                        DateOfBirth = lecturer.DateOfBirth,
+                        LecturerHashIPFS = lecturer.LecturerHashIPFS
+                    });
+                else
+                    throw new CustomException("Address was permission", 300);
             }
             catch (Exception ex)
             {

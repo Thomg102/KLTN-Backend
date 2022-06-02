@@ -228,32 +228,40 @@ namespace KLTN.Core.StudentServices.Implementations
         {
             try
             {
-                await _student.InsertOneAsync(new Student()
-                {
-                    StudentName = student.StudentName,
-                    StudentImg = student.StudentImg,
-                    StudentId = student.StudentId,
-                    StudentAddress = student.StudentAddress,
-                    MajorName = student.MajorName,
-                    ClassroomName = student.ClassroomName,
-                    DepartmentName = student.DepartmentName,
-                    SchoolYear = student.SchoolYear,
-                    Sex = student.Sex,
-                    DateOfBirth = student.DateOfBirth,
-                    BirthPlace = student.BirthPlace,
-                    Ethnic = student.Ethnic,
-                    NationalId = student.NationalId,
-                    DateOfNationalId = student.DateOfNationalId,
-                    PlaceOfNationalId = student.PlaceOfNationalId,
-                    PermanentAddress = student.PermanentAddress,
-                    StudentHashIPFS = student.StudentHashIPFS,
-                    DepartmentShortenName = student.DepartmentShortenName,
-                    ProductOfStudentList = new List<ProductOfStudentDTO>() { }
-                });
+                var isExisted = false;
+                var lecturerList = _student.Find<Student>(_ => true).ToList();
+                foreach (var lecturerInfo in lecturerList)
+                    if (lecturerInfo.StudentAddress.ToLower() == student.StudentAddress.ToLower())
+                        isExisted = true;
+                if (!isExisted)
+                    await _student.InsertOneAsync(new Student()
+                    {
+                        StudentName = student.StudentName,
+                        StudentImg = student.StudentImg,
+                        StudentId = student.StudentId,
+                        StudentAddress = student.StudentAddress,
+                        MajorName = student.MajorName,
+                        ClassroomName = student.ClassroomName,
+                        DepartmentName = student.DepartmentName,
+                        SchoolYear = student.SchoolYear,
+                        Sex = student.Sex,
+                        DateOfBirth = student.DateOfBirth,
+                        BirthPlace = student.BirthPlace,
+                        Ethnic = student.Ethnic,
+                        NationalId = student.NationalId,
+                        DateOfNationalId = student.DateOfNationalId,
+                        PlaceOfNationalId = student.PlaceOfNationalId,
+                        PermanentAddress = student.PermanentAddress,
+                        StudentHashIPFS = student.StudentHashIPFS,
+                        DepartmentShortenName = student.DepartmentShortenName,
+                        ProductOfStudentList = new List<ProductOfStudentDTO>() { }
+                    });
+                else
+                    throw new CustomException("Address was permission", 300);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in CreateNewSubject");
+                _logger.LogError(ex, "Error in CreateNewStudent");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

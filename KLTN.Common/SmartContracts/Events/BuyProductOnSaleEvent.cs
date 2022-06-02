@@ -8,19 +8,19 @@ namespace KLTN.Common.SmartContracts.Events
     [Event("ItemBought")]
     public class BuyProductOnSaleEvent : IEventDTO
     {
-        [Parameter("string", "itemId", 1, true)]
+        [Parameter("uint256", "itemId", 1, true)]
         public long ProductId { get; set; }
 
         [Parameter("address", "buyer", 2, false)]
-        public long Buyer { get; set; }
+        public string Buyer { get; set; }
 
         [Parameter("address", "seller", 3, false)]
-        public long Seller { get; set; }
+        public string Seller { get; set; }
 
         [Parameter("uint256", "amount", 4, false)]
-        public string Amount { get; set; }
+        public long Amount { get; set; }
 
         [Parameter("uint256", "price", 5, false)]
-        public string TotalPrice { get; set; }
+        public long TotalPrice { get; set; }
     }
 }

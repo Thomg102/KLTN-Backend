@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace KLTN.Core.ActiveRequestServices.DTOs
+namespace KLTN.Core.ActivateRequestServices.DTOs
 {
     public class ActivateRequestResponseDTO
     {
-        public string RequestId { get; set; }
+        public long RequestId { get; set; }
         public string ProductName { get; set; }
+        public long RequestedTime { get; set; }
+        public long ActivatedTime { get; set; }
         public string StudentAddress { get; set; }
-        public string ProductId { get; set; }
+        public long ProductId { get; set; }
         public string ProductHahIPFS { get; set; }
-        public string AmountToActive { get; set; }
+        public long AmountToActivate { get; set; }
         public string ProductTypeName { get; set; }
-        public bool IsActived { get; set; }
+        public bool IsActivated { get; set; }
+        public string ProductImg { get; set; }
+        public string ProductDescription { get; set; }
     }
 }

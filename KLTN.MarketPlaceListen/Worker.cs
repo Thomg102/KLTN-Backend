@@ -3,6 +3,7 @@ using KLTN.Common.Models.AppSettingModels;
 using KLTN.Common.SmartContracts.Events;
 using KLTN.Common.Utilities.Constants;
 using KLTN.Core.ProductServices.Interfaces;
+using KLTN.Core.RequestActivateServices.Interfaces;
 using KLTN.DAL;
 using KLTN.MarketPlaceListen.DTOs;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,11 +36,13 @@ namespace KLTN.MarketPlaceListen
         string marketplaceAddress = ListenMarketplaceAppSetting.Value.MarketplaceContractAddress;
         int chainNetworkId = ListenMarketplaceAppSetting.Value.ChainNetworkId;
 
-        List<string> subcribedContracts = new List<string>();
-
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
+            _services = serviceScopeFactory;
+            _hostApplicationLifetime = hostApplicationLifetime;
+            _web3 = new Nethereum.Web3.Web3(ListenMarketplaceAppSetting.Value.RpcUrl);
+            _web3.TransactionManager.UseLegacyAsDefault = true;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -50,6 +53,17 @@ namespace KLTN.MarketPlaceListen
                 {
                     await client.StartAsync();
                     await ListenCreateNewProductOnSale(client);
+                    await ListenListProductOnSale(client);
+                    await ListenDelistProductOnSale(client);
+                    await ListenBuyProductOnSale(client);
+                    await ListenUpdateBuyPriceProductOnSale(client);
+                    await ListenUpdateAmountProductOnSale(client);
+
+                    await ListenRequestActivateNFT(client);
+                    await ListenCancelRequestActivateNFT(client);
+                    await ActivateRequestNFT(client);
+
+
 
                     await PingAliveWS(client, stoppingToken);
                 }
@@ -143,15 +157,15 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.CreateNewProductOnSale(new Core.ProductServices.DTOs.ProductOnSaleDTO
                         {
-                            ProductName = metadata.,
-                            ProductImg = metadata.,
-                            ProductId = decoded.Event.ProductId,
-                            ProductHahIPFS = decoded.Event.HashInfo,
-                            AmountOnSale = decoded.Event.AmountOnSale,
-                            PriceOfOneItem = decoded.Event.PriceOfOneItem,
-                            ProductTypeName = metadata.,
-                            ProductDescription = metadata.,
-                            SaleAddress = decoded.Event.SaleAddress
+                            //ProductName = metadata.,
+                            //ProductImg = metadata.,
+                            //ProductId = decoded.Event.ProductId,
+                            //ProductHahIPFS = decoded.Event.HashInfo,
+                            //AmountOnSale = decoded.Event.AmountOnSale,
+                            //PriceOfOneItem = decoded.Event.PriceOfOneItem,
+                            //ProductTypeName = metadata.,
+                            //ProductDescription = metadata.,
+                            //SaleAddress = decoded.Event.SaleAddress
                         });
                     }
                     _logger.LogInformation($"Listening create and list product with ProductId: " + decoded.Event.ProductId);
@@ -226,17 +240,145 @@ namespace KLTN.MarketPlaceListen
                     using (var scope = _services.CreateScope())
                     {
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
-                        await scopedProcessingService.BuyProductOnSale(new Core.ProductServices.DTOs.ProductStudentDelistOnSaleDTO
+                        await scopedProcessingService.BuyProductOnSale(new Core.ProductServices.DTOs.ProductStudentBuyOnSaleDTO
                         {
                             ProductId = decoded.Event.ProductId,
-                            AmountOnSale = decoded.Event.AmountOnSale,
-                            SaleAddress = decoded.Event.SaleAddress
+                            BuyAmount = decoded.Event.Amount,
+                            BuyerAddress = decoded.Event.Buyer,
+                            SellerAddress = decoded.Event.Seller
                         });
                     }
                     _logger.LogInformation($"Listening buy product on sale with ProductId: " + decoded.Event.ProductId);
                 });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenBuyProductOnSale Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenUpdateBuyPriceProductOnSale(StreamingWebSocketClient client)
+        {
+            Console.WriteLine(marketplaceAddress);
+            var filter = _web3.Eth.GetEvent<UpdateBuyPriceProductOnSaleEvent>(marketplaceAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<UpdateBuyPriceProductOnSaleEvent> decoded = Event<UpdateBuyPriceProductOnSaleEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
+                        await scopedProcessingService.UpdateBuyPriceProductOnSale(new Core.ProductServices.DTOs.ProductUpdateBuyPriceOnSaleDTO
+                        {
+                            ProductId = decoded.Event.ProductId,
+                            PriceOfOneItem = decoded.Event.PriceOfOneItem,
+                            SaleAddress = decoded.Event.SaleAddress
+                        });
+                    }
+                    _logger.LogInformation($"Listening update buyPrice of product on sale with ProductId: " + decoded.Event.ProductId + " and price of one item is:" + decoded.Event.PriceOfOneItem);
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenUpdateBuyPriceProductOnSale Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenUpdateAmountProductOnSale(StreamingWebSocketClient client)
+        {
+            Console.WriteLine(marketplaceAddress);
+            var filter = _web3.Eth.GetEvent<UpdateAmountProductOnSaleEvent>(marketplaceAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<UpdateAmountProductOnSaleEvent> decoded = Event<UpdateAmountProductOnSaleEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
+                        await scopedProcessingService.UpdateAmountProductOnSale(new Core.ProductServices.DTOs.ProductUpdateAmountOnSaleDTO
+                        {
+                            ProductId = decoded.Event.ProductId,
+                            AmountOnSale = decoded.Event.AmountOnSale,
+                            SaleAddress = decoded.Event.SaleAddress
+                        });
+                    }
+                    _logger.LogInformation($"Listening admin update amount of product on sale with ProductId: " + decoded.Event.ProductId + " and amount to sale:" + decoded.Event.AmountOnSale);
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenUpdateAmountProductOnSale Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenRequestActivateNFT(StreamingWebSocketClient client)
+        {
+            Console.WriteLine(marketplaceAddress);
+            var filter = _web3.Eth.GetEvent<RequestActivateNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<RequestActivateNFTEvent> decoded = Event<RequestActivateNFTEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IActivateRequestService>();
+                        await scopedProcessingService.CreateNewActivateRequest(new Core.ActivateRequestServices.DTOs.RequestActivateDTO
+                        {
+                            ProductId = decoded.Event.ProductId,
+                            RequestId = decoded.Event.RequestId,
+                            AmountToActivate = decoded.Event.AmountToActive,
+                            RequestedTime = decoded.Event.RequestedTime,
+                            StudentAddress = decoded.Event.StudentAddress
+                        });
+                    }
+                    _logger.LogInformation($"Listening admin update amount of product on sale with ProductId: " + decoded.Event.ProductId + " and amount to sale:" + decoded.Event.AmountOnSale);
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenUpdateAmountProductOnSale Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenCancelRequestActivateNFT(StreamingWebSocketClient client)
+        {
+            Console.WriteLine(marketplaceAddress);
+            var filter = _web3.Eth.GetEvent<CancelRequestActivateNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<CancelRequestActivateNFTEvent> decoded = Event<CancelRequestActivateNFTEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IActivateRequestService>();
+                        await scopedProcessingService.CancelActivateRequest(decoded.Event.RequestIds);
+                    }
+                    _logger.LogInformation($"Listening ListenCancelRequestActivateNFT successfully");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenCancelRequestActivateNFT Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ActivateRequestNFT(StreamingWebSocketClient client)
+        {
+            Console.WriteLine(marketplaceAddress);
+            var filter = _web3.Eth.GetEvent<ActivateRequestNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<ActivateRequestNFTEvent> decoded = Event<ActivateRequestNFTEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IActivateRequestService>();
+                        await scopedProcessingService.ActivateRequest(new Core.ActivateRequestServices.DTOs.ActivateRequestDTO
+                        {
+                            RequestId = decoded.Event.RequestId,
+                            ActivatedTime = decoded.Event.ActivatedTime,
+                            IsIdependentNFT = decoded.Event.IsIdependentNFT
+                        });
+                    }
+                    _logger.LogInformation($"Listening ActivateRequestNFT successfully");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ActivateRequestNFT Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
             await subscription.SubscribeAsync(filter);
         }
     }

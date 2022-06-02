@@ -324,7 +324,7 @@ namespace KLTN.Core.ProductServices.Implementations
                         Amount = sellingAmount,
                         ProductDescription = productOnSale.ProductDescription,
                         ProductHahIPFS = productOnSale.ProductHahIPFS,
-                        ProductImg = productOnSale.ProductHahIPFS,
+                        ProductImg = productOnSale.ProductImg,
                         ProductName = productOnSale.ProductName,
                         ProductTypeName = productOnSale.ProductTypeName
                     });
@@ -343,36 +343,44 @@ namespace KLTN.Core.ProductServices.Implementations
             try
             {
                 var filter = Builders<ProductOnSale>.Filter.Where(x =>
-                    x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
+                    x.SaleAddress.ToLower() == product.SellerAddress.ToLower()
                     && x.ProductId == product.ProductId
                 );
-                await _product.DeleteOneAsync(filter);
+                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductId == product.ProductId && x.SaleAddress.ToLower() == product.SellerAddress.ToLower()).FirstOrDefault();
+                var sellingAmount = productOnSale.AmountOnSale;
+
+                if (sellingAmount > product.BuyAmount)
+                {
+                    var update = Builders<ProductOnSale>.Update.Set(x => x.AmountOnSale, sellingAmount - product.BuyAmount);
+                    await _product.UpdateOneAsync(filter, update);
+                }
+                else if (sellingAmount == product.BuyAmount)
+                    await _product.DeleteOneAsync(filter);
+
 
                 var isExisted = false;
-                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductId == product.ProductId && x.SaleAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
-                var sellingAmount = productOnSale.AmountOnSale;
-                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower()).FirstOrDefault();
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
                     if (productStudent.ProductId == product.ProductId)
                     {
                         isExisted = true;
-                        var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productStudent.Amount + sellingAmount);
+                        var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower());
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productStudent.Amount + product.BuyAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }
                 }
                 if (!isExisted)
                 {
-                    var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
+                    var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower());
                     var updateStudentAmount = Builders<Student>.Update.Push(x => x.ProductOfStudentList, new ProductOfStudentDTO()
                     {
                         ProductId = product.ProductId,
-                        Amount = sellingAmount,
+                        Amount = product.BuyAmount,
                         ProductDescription = productOnSale.ProductDescription,
                         ProductHahIPFS = productOnSale.ProductHahIPFS,
-                        ProductImg = productOnSale.ProductHahIPFS,
+                        ProductImg = productOnSale.ProductImg,
                         ProductName = productOnSale.ProductName,
                         ProductTypeName = productOnSale.ProductTypeName
                     });
@@ -381,7 +389,43 @@ namespace KLTN.Core.ProductServices.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in DelistProductOnSale");
+                _logger.LogError(ex, "Error in BuyProductOnSale");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task UpdateBuyPriceProductOnSale(ProductUpdateBuyPriceOnSaleDTO product)
+        {
+            try
+            {
+                var filter = Builders<ProductOnSale>.Filter.Where(x =>
+                    x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
+                    && x.ProductId == product.ProductId
+                );
+                var update = Builders<ProductOnSale>.Update.Set(x => x.PriceOfOneItem, product.PriceOfOneItem.ToString());
+                await _product.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateBuyPriceProductOnSale");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task UpdateAmountProductOnSale(ProductUpdateAmountOnSaleDTO product)
+        {
+            try
+            {
+                var filter = Builders<ProductOnSale>.Filter.Where(x =>
+                    x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
+                    && x.ProductId == product.ProductId
+                );
+                var update = Builders<ProductOnSale>.Update.Set(x => x.AmountOnSale, product.AmountOnSale);
+                await _product.UpdateOneAsync(filter, update);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateAmountProductOnSale");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

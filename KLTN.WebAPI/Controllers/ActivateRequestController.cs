@@ -1,6 +1,6 @@
 ﻿using KLTN.Common.Exceptions;
 using KLTN.Core.ActivateRequestServices.DTOs;
-using KLTN.Core.RequestActiveServices.Interfaces;
+using KLTN.Core.RequestActivateServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -43,7 +43,7 @@ namespace KLTN.WebAPI.Controllers
         }
 
         [HttpPost("")]
-        public JsonResult CreateNewActivateRequest([FromBody] ActivateRequestDTO activateRequest)
+        public JsonResult CreateNewActivateRequest([FromBody] RequestActivateDTO activateRequest)
         {
             _activateRequestService.CreateNewActivateRequest(activateRequest);
             return new JsonResult(new SuccessResponseModel());

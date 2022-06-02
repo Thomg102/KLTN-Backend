@@ -57,10 +57,10 @@ namespace KLTN.ManagerPoolListen
             var _account = new Account(ListenMangerPoolAppSettings.Value.PrivateKey, chainNetworkId);
             _web3 = new Nethereum.Web3.Web3(_account, ListenMangerPoolAppSettings.Value.RpcUrl);
             _web3.TransactionManager.UseLegacyAsDefault = true;
-            //_subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
-            //var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
-            //foreach (var subcribedContract in subcribedContractsList)
-            //subcribedContracts.Add(subcribedContract.SubcribedContracts);
+            _subcribedContractsListenEvent = _context.GetCollection<SubcribedContractsListenEvent>(typeof(SubcribedContractsListenEvent).Name);
+            var subcribedContractsList = _subcribedContractsListenEvent.Find<SubcribedContractsListenEvent>(_ => true).ToList();
+            foreach (var subcribedContract in subcribedContractsList)
+                subcribedContracts.Add(subcribedContract.SubcribedContracts);
 
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
         }
