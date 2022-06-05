@@ -14,11 +14,12 @@ namespace KLTN.DAL.Models.Entities
         [BsonRepresentation(BsonType.ObjectId)]
         public ObjectId Id { get; set; }
         public string ProductName { get; set; }
-        public string ProductId { get; set; }
+        public string ProductImg { get; set; }
+        public long ProductId { get; set; }
         public string SaleAddress { get; set; }
         public string ProductHahIPFS { get; set; }
-        public string AmountOnSale { get; set; }
-        public long PriceOfOneItem { get; set; }
+        public long AmountOnSale { get; set; }
+        public string PriceOfOneItem { get; set; }
         public string ProductTypeName { get; set; }
         public string ProductDescription { get; set; }
     }

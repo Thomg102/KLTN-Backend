@@ -9,11 +9,16 @@ namespace KLTN.Core.ProductServices.Interfaces
     public interface IProductService
     {
         List<ProductDetailResponseDTO> GetListOfStudentProduct(string studentAddress);
-        ProductDetailResponseDTO GetDetailOfStudentProduct(string productId, string studentAddress);
-        ProductDetailResponseDTO GetDetailOfProductOnSale(string productId, string studentAddress, string _adminAddress);
+        ProductDetailResponseDTO GetDetailOfStudentProduct(long productId, string studentAddress);
+        ProductDetailResponseDTO GetDetailOfProductOnSale(long productId, string studentAddress, string _adminAddress);
         List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress, string _adminAddress);
         List<ProductDetailResponseDTO> GetListOfAllProductOnSale();
         List<ProductTypeResponseDTO> GetListOfAllProductType();
         Task CreateNewProductOnSale(ProductOnSaleDTO product);
+        Task ListProductOnSale(ProductStudentListOnSaleDTO product);
+        Task DelistProductOnSale(ProductStudentDelistOnSaleDTO product);
+        Task BuyProductOnSale(ProductStudentBuyOnSaleDTO product);
+        Task UpdateBuyPriceProductOnSale(ProductUpdateBuyPriceOnSaleDTO product);
+        Task UpdateAmountProductOnSale(ProductUpdateAmountOnSaleDTO product);
     }
 }
