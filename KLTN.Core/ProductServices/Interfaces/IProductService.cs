@@ -18,5 +18,6 @@ namespace KLTN.Core.ProductServices.Interfaces
         Task BuyProductOnSale(ProductStudentBuyOnSaleDTO product);
         Task UpdateBuyPriceProductOnSale(ProductUpdateBuyPriceOnSaleDTO product);
         Task UpdateAmountProductOnSale(ProductUpdateAmountOnSaleDTO product);
+        List<BuyerOfProductOnSaleResponseDTO> GetListBuyerOfProductOnSale(long productNftId);
     }
 }
