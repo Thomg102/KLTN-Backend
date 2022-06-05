@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace KLTN.Core.ActivateRequestServices.DTOs
+﻿namespace KLTN.Core.ActivateRequestServices.DTOs
 {
     public class ActivateRequestResponseDTO
     {
@@ -11,7 +7,8 @@ namespace KLTN.Core.ActivateRequestServices.DTOs
         public long RequestedTime { get; set; }
         public long ActivatedTime { get; set; }
         public string StudentAddress { get; set; }
-        public long ProductId { get; set; }
+        public long ProductNftId { get; set; }
+        public string ProductId { get; set; }
         public string ProductHahIPFS { get; set; }
         public long AmountToActivate { get; set; }
         public string ProductTypeName { get; set; }

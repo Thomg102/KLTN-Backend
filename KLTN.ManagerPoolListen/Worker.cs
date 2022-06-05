@@ -457,13 +457,12 @@ namespace KLTN.ManagerPoolListen
         private async Task FollowMissionCompetitionAsync(StreamingWebSocketClient client, string missionContractAddress, bool isContainedInSubcribedContracts)
         {
             try
-            {   
+            {
                 if (!isContainedInSubcribedContracts)
                 {
                     subcribedContracts.Add(missionContractAddress);
                     await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress });
                 }
-            {
                 //subcribedContracts.Add(missionContractAddress);
                 //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = missionContractAddress});
 
@@ -630,8 +629,9 @@ namespace KLTN.ManagerPoolListen
                     if (isReadyToClose)
                     {
                         var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
-                        var closeSubcribedContract = new Close() {
-                            Pool= subcribedContract
+                        var closeSubcribedContract = new Close()
+                        {
+                            Pool = subcribedContract
                         };
                         var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
                     }

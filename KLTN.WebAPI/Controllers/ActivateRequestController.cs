@@ -1,11 +1,8 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.ActivateRequestServices.DTOs;
+﻿using KLTN.Core.ActivateRequestServices.DTOs;
 using KLTN.Core.RequestActivateServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {
@@ -35,10 +32,10 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel(result));
         }
 
-        [HttpGet("{requestId}")]
-        public JsonResult GetDetailOfActivateRequest(string requestId)
+        [HttpGet("{productNftId}")]
+        public JsonResult GetDetailOfActivateRequest(long productNftId)
         {
-            var result = _activateRequestService.GetDetailOfActivateRequest(requestId);
+            var result = _activateRequestService.GetDetailOfActivateRequest(productNftId);
             return new JsonResult(new SuccessResponseModel(result));
         }
 

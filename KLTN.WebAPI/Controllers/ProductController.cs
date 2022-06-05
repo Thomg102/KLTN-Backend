@@ -1,12 +1,9 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
+﻿using KLTN.Common.Models;
 using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.ProductServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {
@@ -29,24 +26,24 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel(result));
         }
 
-        [HttpGet("{studentAddress}/{productId}")]
-        public JsonResult GetDetailOfStudentProduct(string productId, string studentAddress)
+        [HttpGet("{studentAddress}/{productNftId}")]
+        public JsonResult GetDetailOfStudentProduct(long productNftId, string studentAddress)
         {
-            var result = _productService.GetDetailOfStudentProduct(productId, studentAddress);
+            var result = _productService.GetDetailOfStudentProduct(productNftId, studentAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 
-        [HttpGet("product-on-sale/{productId}")]
-        public JsonResult GetDetailOfProductOnSale(string productId, [FromQuery] string studentAddress)
+        [HttpGet("product-on-sale/{productNftId}")]
+        public JsonResult GetDetailOfProductOnSale(long productNftId, [FromQuery] string studentAddress)
         {
-            var result = _productService.GetDetailOfProductOnSale(productId, studentAddress, WebAPIAppSettings.Value.AdminAddress);
+            var result = _productService.GetDetailOfProductOnSale(productNftId, studentAddress, WebAPIAppSettings.Value.AdminAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 
         [HttpGet("product-on-sale")]
-        public JsonResult GetListOfProductOnSale([FromQuery] string studentAddress)
+        public JsonResult GetListOfProductOnSale([FromQuery] string walletAddress)
         {
-            var result = _productService.GetListOfProductOnSale(studentAddress, WebAPIAppSettings.Value.AdminAddress);
+            var result = _productService.GetListOfProductOnSale(walletAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 

@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace KLTN.Common.Enums
+﻿namespace KLTN.Common.Enums
 {
     public enum Status
     {
         Opening,
         Closed
+    }
+
+    public enum ProductStatus
+    {
+        OnSale,
+        OffSale,
+        Request,
+        Activated
     }
 }

@@ -16,8 +16,6 @@ using Nethereum.RPC.Reactive.Eth;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -157,15 +155,16 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.CreateNewProductOnSale(new Core.ProductServices.DTOs.ProductOnSaleDTO
                         {
-                            //ProductName = metadata.,
-                            //ProductImg = metadata.,
-                            //ProductId = decoded.Event.ProductId,
-                            //ProductHahIPFS = decoded.Event.HashInfo,
-                            //AmountOnSale = decoded.Event.AmountOnSale,
-                            //PriceOfOneItem = decoded.Event.PriceOfOneItem,
-                            //ProductTypeName = metadata.,
-                            //ProductDescription = metadata.,
-                            //SaleAddress = decoded.Event.SaleAddress
+                            ProductName = metadata.Name,
+                            ProductImg = metadata.Img,
+                            ProductId = metadata.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
+                            ProductHahIPFS = decoded.Event.HashInfo,
+                            AmountOnSale = long.Parse(metadata.Amount),
+                            PriceOfOneItem = long.Parse(metadata.Price),
+                            ProductTypeName = metadata.ProductType,
+                            ProductDescription = metadata.Description,
+                            SaleAddress = decoded.Event.SaleAddress
                         });
                     }
                     _logger.LogInformation($"Listening create and list product with ProductId: " + decoded.Event.ProductId);
@@ -189,7 +188,7 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.ListProductOnSale(new Core.ProductServices.DTOs.ProductStudentListOnSaleDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             AmountOnSale = decoded.Event.AmountOnSale,
                             PriceOfOneItem = decoded.Event.PriceOfOneItem,
                             SaleAddress = decoded.Event.SaleAddress
@@ -216,7 +215,7 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.DelistProductOnSale(new Core.ProductServices.DTOs.ProductStudentDelistOnSaleDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             AmountOnSale = decoded.Event.AmountOnSale,
                             SaleAddress = decoded.Event.SaleAddress
                         });
@@ -242,7 +241,7 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.BuyProductOnSale(new Core.ProductServices.DTOs.ProductStudentBuyOnSaleDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             BuyAmount = decoded.Event.Amount,
                             BuyerAddress = decoded.Event.Buyer,
                             SellerAddress = decoded.Event.Seller
@@ -269,7 +268,7 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.UpdateBuyPriceProductOnSale(new Core.ProductServices.DTOs.ProductUpdateBuyPriceOnSaleDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             PriceOfOneItem = decoded.Event.PriceOfOneItem,
                             SaleAddress = decoded.Event.SaleAddress
                         });
@@ -295,7 +294,7 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
                         await scopedProcessingService.UpdateAmountProductOnSale(new Core.ProductServices.DTOs.ProductUpdateAmountOnSaleDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             AmountOnSale = decoded.Event.AmountOnSale,
                             SaleAddress = decoded.Event.SaleAddress
                         });
@@ -321,14 +320,14 @@ namespace KLTN.MarketPlaceListen
                         var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IActivateRequestService>();
                         await scopedProcessingService.CreateNewActivateRequest(new Core.ActivateRequestServices.DTOs.RequestActivateDTO
                         {
-                            ProductId = decoded.Event.ProductId,
+                            ProductNftId = decoded.Event.ProductId,
                             RequestId = decoded.Event.RequestId,
                             AmountToActivate = decoded.Event.AmountToActive,
                             RequestedTime = decoded.Event.RequestedTime,
                             StudentAddress = decoded.Event.StudentAddress
                         });
                     }
-                    _logger.LogInformation($"Listening admin update amount of product on sale with ProductId: " + decoded.Event.ProductId + " and amount to sale:" + decoded.Event.AmountOnSale);
+                    _logger.LogInformation($"Listening admin update amount of product on sale with ProductId: " + decoded.Event.ProductId + " and amount to sale:" + decoded.Event.AmountToActive);
                 });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenUpdateAmountProductOnSale Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));

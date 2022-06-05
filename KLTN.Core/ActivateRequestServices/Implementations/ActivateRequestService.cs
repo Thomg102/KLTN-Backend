@@ -1,17 +1,16 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Core.ActivateRequestServices.DTOs;
+using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.RequestActivateServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -107,26 +106,25 @@ namespace KLTN.Core.RequestActivateServices.Implementations
         }
 
         // Get Detail of activate request Student/Admin
-        public ActivateRequestResponseDTO GetDetailOfActivateRequest(long requestId)
+        public ProductDetailResponseDTO GetDetailOfActivateRequest(long productNftId)
         {
             try
             {
-                var activateRequest = _activateRequest.Find<ActivateRequest>(x => x.RequestId == requestId).FirstOrDefault();
-                return (new ActivateRequestResponseDTO()
+                var activateRequest = _activateRequest.Find<ActivateRequest>(x => x.ProductNftId == productNftId).FirstOrDefault();
+                return new ProductDetailResponseDTO()
                 {
-                    RequestId = activateRequest.RequestId,
                     ProductName = activateRequest.ProductName,
-                    ProductId = activateRequest.ProductId,
-                    StudentAddress = activateRequest.StudentAddress,
-                    ProductHahIPFS = activateRequest.ProductHahIPFS,
-                    AmountToActivate = activateRequest.AmountToActivate,
-                    RequestedTime= activateRequest.RequestedTime,
-                    IsActivated = activateRequest.IsActivated,
-                    ProductTypeName = activateRequest.ProductTypeName,
                     ProductImg = activateRequest.ProductImg,
+                    ProductId = activateRequest.ProductId,
+                    ProductNftId = activateRequest.ProductNftId,
                     ProductDescription = activateRequest.ProductDescription,
-                    ActivatedTime = activateRequest.ActivatedTime
-                });
+                    ProductHahIPFS = activateRequest.ProductHahIPFS,
+                    Amount = activateRequest.AmountToActivate,
+                    ProductTypeName = activateRequest.ProductTypeName,
+                    OwnerAddress = activateRequest.StudentAddress,
+                    PriceOfOneItem = "0",
+                    Status = activateRequest.IsActivated ? ProductStatus.Activated.ToString() : ProductStatus.Request.ToString()
+                };
             }
             catch (Exception ex)
             {
@@ -145,7 +143,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 var productToActivate = new ProductOfStudentDTO() { };
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
-                    if (productStudent.ProductId == product.ProductId)
+                    if (productStudent.ProductNftId == product.ProductNftId)
                     {
                         productRemaining = productStudent.Amount - product.AmountToActivate;
                         if (productRemaining < 0)
@@ -154,6 +152,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                         productActivate = new ActivateRequest()
                         {
                             ProductName = productStudent.ProductName,
+                            ProductNftId = productStudent.ProductNftId,
                             ProductId = productStudent.ProductId,
                             ProductHahIPFS = productStudent.ProductHahIPFS,
                             ProductTypeName = productStudent.ProductTypeName,
@@ -167,7 +166,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 {
                     RequestId = product.RequestId,
                     ProductName = productActivate.ProductName,
-                    ProductId = product.ProductId,
+                    ProductId = productActivate.ProductId,
+                    ProductNftId = product.ProductNftId,
                     StudentAddress = product.StudentAddress,
                     ProductHahIPFS = productActivate.ProductHahIPFS,
                     AmountToActivate = product.AmountToActivate,
@@ -182,7 +182,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower());
                 if (productRemaining > 0)
                 {
-                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productRemaining);
+                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productRemaining);
                     await _student.UpdateOneAsync(filter, update);
                 }
                 else
@@ -234,7 +234,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                         });
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                     }
-                } 
+                }
 
                 var filter = Builders<ActivateRequest>
                   .Filter

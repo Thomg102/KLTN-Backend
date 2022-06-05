@@ -1,10 +1,5 @@
-﻿using KLTN.Common.Enums;
-using KLTN.DAL.Models.DTOs;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.DAL.Models.Entities
 {
@@ -16,7 +11,8 @@ namespace KLTN.DAL.Models.Entities
         public long RequestId { get; set; }
         public string ProductName { get; set; }
         public string StudentAddress { get; set; }
-        public long ProductId { get; set; }
+        public string ProductId { get; set; }
+        public long ProductNftId { get; set; }
         public string ProductHahIPFS { get; set; }
         public long AmountToActivate { get; set; }
         public string ProductTypeName { get; set; }

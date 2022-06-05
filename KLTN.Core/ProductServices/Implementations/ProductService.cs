@@ -1,17 +1,15 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.ProductServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -48,10 +46,14 @@ namespace KLTN.Core.ProductServices.Implementations
                         ProductName = product.ProductName,
                         ProductImg = product.ProductImg,
                         ProductId = product.ProductId,
+                        ProductNftId = product.ProductNftId,
                         ProductDescription = product.ProductDescription,
                         ProductHahIPFS = product.ProductHahIPFS,
                         Amount = product.Amount,
                         ProductTypeName = product.ProductTypeName,
+                        OwnerAddress = studentAddress,
+                        PriceOfOneItem = "0",
+                        Status = ProductStatus.OffSale.ToString()
                     });
                 return result;
             }
@@ -63,23 +65,27 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get detail of specific Student product 
-        public ProductDetailResponseDTO GetDetailOfStudentProduct(long productId, string studentAddress)
+        public ProductDetailResponseDTO GetDetailOfStudentProduct(long productNftId, string studentAddress)
         {
             try
             {
                 var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
                 foreach (var product in student.ProductOfStudentList)
                 {
-                    if (product.ProductId == productId)
+                    if (product.ProductNftId == productNftId)
                         return new ProductDetailResponseDTO()
                         {
                             ProductName = product.ProductName,
                             ProductImg = product.ProductImg,
                             ProductId = product.ProductId,
+                            ProductNftId = product.ProductNftId,
                             ProductDescription = product.ProductDescription,
                             ProductHahIPFS = product.ProductHahIPFS,
                             Amount = product.Amount,
                             ProductTypeName = product.ProductTypeName,
+                            OwnerAddress = studentAddress,
+                            PriceOfOneItem = "0",
+                            Status = ProductStatus.OffSale.ToString()
                         };
 
                 }
@@ -93,25 +99,29 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get detail of specific product on sale Student/Admin
-        public ProductDetailResponseDTO GetDetailOfProductOnSale(long productId, string studentAddress, string adminAddress)
+        public ProductDetailResponseDTO GetDetailOfProductOnSale(long productNftId, string studentAddress, string adminAddress)
         {
             try
             {
                 var product = new ProductOnSale();
                 if (studentAddress == null)
-                    product = _product.Find<ProductOnSale>(x => x.ProductId == productId && x.SaleAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId && x.SaleAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
                 else
-                    product = _product.Find<ProductOnSale>(x => x.ProductId == productId && x.SaleAddress.ToLower() == adminAddress.ToLower()).FirstOrDefault();
+                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId && x.SaleAddress.ToLower() == adminAddress.ToLower()).FirstOrDefault();
                 if (product != null)
                     return new ProductDetailResponseDTO()
                     {
                         ProductName = product.ProductName,
                         ProductImg = product.ProductImg,
                         ProductId = product.ProductId,
+                        ProductNftId = product.ProductNftId,
                         ProductDescription = product.ProductDescription,
                         ProductHahIPFS = product.ProductHahIPFS,
                         Amount = product.AmountOnSale,
                         ProductTypeName = product.ProductTypeName,
+                        OwnerAddress = product.SaleAddress,
+                        PriceOfOneItem = product.PriceOfOneItem,
+                        Status = ProductStatus.OnSale.ToString()
                     };
                 return new ProductDetailResponseDTO();
             }
@@ -123,16 +133,16 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get list of product On sale Student/Admin
-        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string studentAddress, string adminAddress)
+        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string walletAddress)
         {
             try
             {
                 var result = new List<ProductDetailResponseDTO>();
                 var productList = new List<ProductOnSale>();
-                if (studentAddress == null)
-                    productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == adminAddress.ToLower()).ToList();
+                if (walletAddress == null)
+                    productList = _product.Find<ProductOnSale>(_ => true).ToList();
                 else
-                    productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == studentAddress.ToLower()).ToList();
+                    productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == walletAddress.ToLower()).ToList();
                 if (productList != null && productList.Count > 0)
                     foreach (var product in productList)
                         result.Add(new ProductDetailResponseDTO()
@@ -140,10 +150,14 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductName = product.ProductName,
                             ProductImg = product.ProductImg,
                             ProductId = product.ProductId,
+                            ProductNftId = product.ProductNftId,
                             ProductDescription = product.ProductDescription,
                             ProductHahIPFS = product.ProductHahIPFS,
                             Amount = product.AmountOnSale,
                             ProductTypeName = product.ProductTypeName,
+                            OwnerAddress = product.SaleAddress,
+                            PriceOfOneItem = product.PriceOfOneItem,
+                            Status = ProductStatus.OnSale.ToString()
                         });
                 return result;
             }
@@ -168,10 +182,12 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductName = product.ProductName,
                             ProductImg = product.ProductImg,
                             ProductId = product.ProductId,
+                            ProductNftId = product.ProductNftId,
                             ProductDescription = product.ProductDescription,
                             ProductHahIPFS = product.ProductHahIPFS,
                             Amount = product.AmountOnSale,
                             ProductTypeName = product.ProductTypeName,
+                            Status = ProductStatus.OnSale.ToString()
                         });
                 return result;
             }
@@ -193,6 +209,7 @@ namespace KLTN.Core.ProductServices.Implementations
                         result.Add(new ProductTypeResponseDTO()
                         {
                             ProductTypeName = productType.ProductTypeName,
+                            ProductTypeAlias = productType.ProductTypeAlias,
                             IsIdependentNFT = productType.IsIdependentNFT
                         });
                 return result;
@@ -209,18 +226,20 @@ namespace KLTN.Core.ProductServices.Implementations
             try
             {
                 var productOnSales = _product.Find<ProductOnSale>(_ => true).ToList();
-                foreach(var productOnSale in productOnSales)
+                var productType = _productType.Find<ProductType>(x => x.ProductTypeAlias == product.ProductTypeName).First();
+                foreach (var productOnSale in productOnSales)
                     if (product.ProductId == productOnSale.ProductId)
                         throw new CustomException("Create existed Product", 100);
                 await _product.InsertOneAsync(new ProductOnSale()
                 {
                     ProductName = product.ProductName,
                     ProductId = product.ProductId,
+                    ProductNftId = product.ProductNftId,
                     ProductImg = product.ProductImg,
                     ProductHahIPFS = product.ProductHahIPFS,
                     AmountOnSale = product.AmountOnSale,
                     PriceOfOneItem = product.PriceOfOneItem.ToString(),
-                    ProductTypeName = product.ProductTypeName,
+                    ProductTypeName = productType.ProductTypeName,
                     ProductDescription = product.ProductDescription,
                     SaleAddress = product.SaleAddress
                 });
@@ -242,7 +261,7 @@ namespace KLTN.Core.ProductServices.Implementations
                 var productToSale = new ProductOfStudentDTO() { };
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
-                    if (productStudent.ProductId == product.ProductId)
+                    if (productStudent.ProductNftId == product.ProductNftId)
                     {
                         productRemaining = productStudent.Amount - product.AmountOnSale;
                         if (productRemaining < 0)
@@ -251,6 +270,7 @@ namespace KLTN.Core.ProductServices.Implementations
                         productOnsale = new ProductOnSale()
                         {
                             ProductName = productStudent.ProductName,
+                            ProductNftId = productStudent.ProductNftId,
                             ProductId = productStudent.ProductId,
                             ProductHahIPFS = productStudent.ProductHahIPFS,
                             ProductTypeName = productStudent.ProductTypeName,
@@ -262,7 +282,8 @@ namespace KLTN.Core.ProductServices.Implementations
                 await _product.InsertOneAsync(new ProductOnSale()
                 {
                     ProductName = productOnsale.ProductName,
-                    ProductId = product.ProductId,
+                    ProductId = productOnsale.ProductId,
+                    ProductNftId = product.ProductNftId,
                     ProductHahIPFS = productOnsale.ProductHahIPFS,
                     AmountOnSale = product.AmountOnSale,
                     PriceOfOneItem = product.PriceOfOneItem.ToString(),
@@ -274,7 +295,7 @@ namespace KLTN.Core.ProductServices.Implementations
                 var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
                 if (productRemaining > 0)
                 {
-                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productRemaining);
+                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productRemaining);
                     await _student.UpdateOneAsync(filter, update);
                 }
                 else
@@ -296,21 +317,21 @@ namespace KLTN.Core.ProductServices.Implementations
             {
                 var filter = Builders<ProductOnSale>.Filter.Where(x =>
                     x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
-                    && x.ProductId == product.ProductId
+                    && x.ProductNftId == product.ProductNftId
                 );
                 await _product.DeleteOneAsync(filter);
 
                 var isExisted = false;
-                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductId == product.ProductId && x.SaleAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
+                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductNftId == product.ProductNftId && x.SaleAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
                 var sellingAmount = productOnSale.AmountOnSale;
                 var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
-                    if (productStudent.ProductId == product.ProductId)
+                    if (productStudent.ProductNftId == product.ProductNftId)
                     {
                         isExisted = true;
                         var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productStudent.Amount + sellingAmount);
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productStudent.Amount + sellingAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }
@@ -320,7 +341,8 @@ namespace KLTN.Core.ProductServices.Implementations
                     var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
                     var updateStudentAmount = Builders<Student>.Update.Push(x => x.ProductOfStudentList, new ProductOfStudentDTO()
                     {
-                        ProductId = product.ProductId,
+                        ProductId = productOnSale.ProductId,
+                        ProductNftId = product.ProductNftId,
                         Amount = sellingAmount,
                         ProductDescription = productOnSale.ProductDescription,
                         ProductHahIPFS = productOnSale.ProductHahIPFS,
@@ -344,9 +366,9 @@ namespace KLTN.Core.ProductServices.Implementations
             {
                 var filter = Builders<ProductOnSale>.Filter.Where(x =>
                     x.SaleAddress.ToLower() == product.SellerAddress.ToLower()
-                    && x.ProductId == product.ProductId
+                    && x.ProductNftId == product.ProductNftId
                 );
-                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductId == product.ProductId && x.SaleAddress.ToLower() == product.SellerAddress.ToLower()).FirstOrDefault();
+                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductNftId == product.ProductNftId && x.SaleAddress.ToLower() == product.SellerAddress.ToLower()).FirstOrDefault();
                 var sellingAmount = productOnSale.AmountOnSale;
 
                 if (sellingAmount > product.BuyAmount)
@@ -362,11 +384,11 @@ namespace KLTN.Core.ProductServices.Implementations
                 var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower()).FirstOrDefault();
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
-                    if (productStudent.ProductId == product.ProductId)
+                    if (productStudent.ProductNftId == product.ProductNftId)
                     {
                         isExisted = true;
                         var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == product.ProductId).FirstOrDefault().Amount, productStudent.Amount + product.BuyAmount);
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productStudent.Amount + product.BuyAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }
@@ -376,7 +398,8 @@ namespace KLTN.Core.ProductServices.Implementations
                     var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower());
                     var updateStudentAmount = Builders<Student>.Update.Push(x => x.ProductOfStudentList, new ProductOfStudentDTO()
                     {
-                        ProductId = product.ProductId,
+                        ProductId = productOnSale.ProductId,
+                        ProductNftId = product.ProductNftId,
                         Amount = product.BuyAmount,
                         ProductDescription = productOnSale.ProductDescription,
                         ProductHahIPFS = productOnSale.ProductHahIPFS,
@@ -400,7 +423,7 @@ namespace KLTN.Core.ProductServices.Implementations
             {
                 var filter = Builders<ProductOnSale>.Filter.Where(x =>
                     x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
-                    && x.ProductId == product.ProductId
+                    && x.ProductNftId == product.ProductNftId
                 );
                 var update = Builders<ProductOnSale>.Update.Set(x => x.PriceOfOneItem, product.PriceOfOneItem.ToString());
                 await _product.UpdateOneAsync(filter, update);
@@ -418,7 +441,7 @@ namespace KLTN.Core.ProductServices.Implementations
             {
                 var filter = Builders<ProductOnSale>.Filter.Where(x =>
                     x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
-                    && x.ProductId == product.ProductId
+                    && x.ProductNftId == product.ProductNftId
                 );
                 var update = Builders<ProductOnSale>.Update.Set(x => x.AmountOnSale, product.AmountOnSale);
                 await _product.UpdateOneAsync(filter, update);
