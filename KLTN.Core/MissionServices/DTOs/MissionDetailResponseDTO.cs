@@ -1,12 +1,12 @@
 ﻿using KLTN.DAL.Models.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.Core.MissionServices.DTOs
 {
     public class MissionDetailResponseDTO
     {
+        public string MissionId { get; set; }
+        public string MissionAddress { get; set; }
         public string MissionName { get; set; }
         public string MissionShortenName { get; set; }
         public string MissionDescription { get; set; }
