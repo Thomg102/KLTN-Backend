@@ -47,6 +47,13 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel(result));
         }
 
+        [HttpGet("product-on-sale/buyer/{productNftId}")]
+        public JsonResult GetListBuyerOfProductOnSale(long productNftId)
+        {
+            var result = _productService.GetListBuyerOfProductOnSale(productNftId);
+            return new JsonResult(new SuccessResponseModel(result));
+        }
+
         [HttpGet("")]
         public JsonResult GetListOfAllProductOnSale()
         {

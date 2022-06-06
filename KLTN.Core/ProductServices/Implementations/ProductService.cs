@@ -133,32 +133,66 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get list of product On sale Student/Admin
-        public List<ProductDetailResponseDTO> GetListOfProductOnSale(string walletAddress)
+        public List<ProductOnSaleResponseDTO> GetListOfProductOnSale(string walletAddress)
         {
             try
             {
-                var result = new List<ProductDetailResponseDTO>();
+                var result = new List<ProductOnSaleResponseDTO>();
                 var productList = new List<ProductOnSale>();
                 if (walletAddress == null)
                     productList = _product.Find<ProductOnSale>(_ => true).ToList();
                 else
                     productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == walletAddress.ToLower()).ToList();
                 if (productList != null && productList.Count > 0)
-                    foreach (var product in productList)
-                        result.Add(new ProductDetailResponseDTO()
+                {
+                    var listProductOnSaleGroup = productList.GroupBy(x => x.ProductNftId).ToList();
+                    foreach (var listProductOnSale in listProductOnSaleGroup)
+                    {
+                        var totalAmountOnSale = new long();
+                        foreach (var productOnSale in listProductOnSale)
+                            totalAmountOnSale += productOnSale.AmountOnSale;
+                        result.Add(new ProductOnSaleResponseDTO()
                         {
-                            ProductName = product.ProductName,
-                            ProductImg = product.ProductImg,
-                            ProductId = product.ProductId,
-                            ProductNftId = product.ProductNftId,
-                            ProductDescription = product.ProductDescription,
-                            ProductHahIPFS = product.ProductHahIPFS,
-                            Amount = product.AmountOnSale,
-                            ProductTypeName = product.ProductTypeName,
-                            OwnerAddress = product.SaleAddress,
-                            PriceOfOneItem = product.PriceOfOneItem,
+                            ProductName = listProductOnSale.FirstOrDefault().ProductName,
+                            ProductImg = listProductOnSale.FirstOrDefault().ProductImg,
+                            ProductId = listProductOnSale.FirstOrDefault().ProductId,
+                            ProductNftId = listProductOnSale.Key,
+                            ProductDescription = listProductOnSale.FirstOrDefault().ProductDescription,
+                            ProductHahIPFS = listProductOnSale.FirstOrDefault().ProductHahIPFS,
+                            TotalAmountOnSale = totalAmountOnSale,
+                            ProductTypeName = listProductOnSale.FirstOrDefault().ProductTypeName,
                             Status = ProductStatus.OnSale.ToString()
                         });
+                    }
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetListOfProductOnSale");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        // Get list buyer of specific product On sale Student/Admin
+        public List<BuyerOfProductOnSaleResponseDTO> GetListBuyerOfProductOnSale(long productNftId)
+        {
+            try
+            {
+                var result = new List<BuyerOfProductOnSaleResponseDTO>();
+                var listProductOnSaleGroup = _product.Find<ProductOnSale>(_ => true).ToList().GroupBy(x => x.ProductNftId);
+                foreach (var listProductOnSale in listProductOnSaleGroup)
+                {
+                    if (listProductOnSale.Key == productNftId)
+                        foreach (var productOnSale in listProductOnSale)
+                            result.Add(new BuyerOfProductOnSaleResponseDTO()
+                                {
+                                    OwnerAddress = productOnSale.SaleAddress.ToLower(),
+                                    AmountOnSale = productOnSale.AmountOnSale,
+                                    PriceOfOneItem = productOnSale.PriceOfOneItem,
+                                    Status = ProductStatus.OnSale.ToString()
+                                });
+                }
                 return result;
             }
             catch (Exception ex)
