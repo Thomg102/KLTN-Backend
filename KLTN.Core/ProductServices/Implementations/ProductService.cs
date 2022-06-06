@@ -187,7 +187,9 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductHahIPFS = product.ProductHahIPFS,
                             Amount = product.AmountOnSale,
                             ProductTypeName = product.ProductTypeName,
-                            Status = ProductStatus.OnSale.ToString()
+                            Status = ProductStatus.OnSale.ToString(),
+                            OwnerAddress = product.SaleAddress,
+                            PriceOfOneItem = product.PriceOfOneItem
                         });
                 return result;
             }
