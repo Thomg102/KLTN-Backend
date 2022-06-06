@@ -12,5 +12,6 @@ namespace KLTN.Core.LecturerServicess.Interfaces
         LecturerDetailInfoResponseDTO GetDetailOfLecturer(string lecturerAddress);
         List<LecturerResponseDTO> GetAllLecturer();
         Task CreateNewLectuter(LecturerDTO lecturer);
+        Task RevokeLecturerRole(List<string> lecturerAddrs);
     }
 }

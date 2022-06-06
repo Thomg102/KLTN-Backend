@@ -326,5 +326,19 @@ namespace KLTN.Core.SubjectServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task LockSubject(List<string> subjectAddrs)
+        {
+            try
+            {
+                var filter = Builders<Subject>.Filter.In(x => x.SubjectAddress.ToLower(), subjectAddrs.ConvertAll(d => d.ToLower()));
+                await _subject.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in LockSubject");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

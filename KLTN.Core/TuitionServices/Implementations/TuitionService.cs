@@ -275,5 +275,19 @@ namespace KLTN.Core.TuitionServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task LockTuition(List<string> tuitionAddrs)
+        {
+            try
+            {
+                var filter = Builders<Tuition>.Filter.In(x => x.TuitionAddress.ToLower(), tuitionAddrs.ConvertAll(d => d.ToLower()));
+                await _tuition.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in LockTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

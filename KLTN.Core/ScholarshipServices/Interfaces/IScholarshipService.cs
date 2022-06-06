@@ -16,5 +16,6 @@ namespace KLTN.Core.ScholarshipServices.Interfaces
         Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList);
         Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseScholarship(string scholarshipAddress, int chainNetworkId);
+        Task LockScholarship(List<string> scholarshipAddrs);
     }
 }

@@ -19,5 +19,6 @@ namespace KLTN.Core.MissionServices.Interfaces
         Task UpdateLecturerConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentList);
         Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseMission(string missionAddress, int chainNetworkId);
+        Task LockMission(List<string> missionAddrs);
     }
 }

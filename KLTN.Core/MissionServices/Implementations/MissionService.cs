@@ -351,5 +351,19 @@ namespace KLTN.Core.MissionServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task LockMission(List<string> missionAddrs)
+        {
+            try
+            {
+                var filter = Builders<Mission>.Filter.In(x => x.MissionAddress.ToLower(), missionAddrs.ConvertAll(d => d.ToLower()));
+                await _mission.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in LockMission");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

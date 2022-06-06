@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -149,8 +150,13 @@ namespace KLTN.Core.ProductServices.Implementations
                     foreach (var listProductOnSale in listProductOnSaleGroup)
                     {
                         var totalAmountOnSale = new long();
+                        var minPrice = listProductOnSale.ToList().FirstOrDefault().PriceOfOneItem;
                         foreach (var productOnSale in listProductOnSale)
+                        {
                             totalAmountOnSale += productOnSale.AmountOnSale;
+                            if (BigInteger.Parse(productOnSale.PriceOfOneItem) < BigInteger.Parse(minPrice))
+                                minPrice = productOnSale.PriceOfOneItem;
+                        }
                         result.Add(new ProductOnSaleResponseDTO()
                         {
                             ProductName = listProductOnSale.FirstOrDefault().ProductName,
@@ -161,7 +167,8 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductHahIPFS = listProductOnSale.FirstOrDefault().ProductHahIPFS,
                             TotalAmountOnSale = totalAmountOnSale,
                             ProductTypeName = listProductOnSale.FirstOrDefault().ProductTypeName,
-                            Status = ProductStatus.OnSale.ToString()
+                            Status = ProductStatus.OnSale.ToString(),
+                            MinPrice = minPrice
                         });
                     }
                 }
@@ -197,37 +204,7 @@ namespace KLTN.Core.ProductServices.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetListOfProductOnSale");
-                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
-            }
-        }
-
-        // Get lits of all product On sale
-        public List<ProductDetailResponseDTO> GetListOfAllProductOnSale()
-        {
-            try
-            {
-                var result = new List<ProductDetailResponseDTO>();
-                var productList = _product.Find<ProductOnSale>(_ => true).ToList();
-                if (productList != null && productList.Count > 0)
-                    foreach (var product in productList)
-                        result.Add(new ProductDetailResponseDTO()
-                        {
-                            ProductName = product.ProductName,
-                            ProductImg = product.ProductImg,
-                            ProductId = product.ProductId,
-                            ProductNftId = product.ProductNftId,
-                            ProductDescription = product.ProductDescription,
-                            ProductHahIPFS = product.ProductHahIPFS,
-                            Amount = product.AmountOnSale,
-                            ProductTypeName = product.ProductTypeName,
-                            Status = ProductStatus.OnSale.ToString()
-                        });
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetListOfAllProductOnSale");
+                _logger.LogError(ex, "Error in GetListBuyerOfProductOnSale");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
