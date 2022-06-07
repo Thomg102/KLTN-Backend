@@ -8,8 +8,8 @@ namespace KLTN.Core.ProductServices.Interfaces
     {
         List<ProductDetailResponseDTO> GetListOfStudentProduct(string studentAddress);
         ProductDetailResponseDTO GetDetailOfStudentProduct(long productId, string studentAddress);
-        ProductDetailResponseDTO GetDetailOfProductOnSale(long productId, string studentAddress, string _adminAddress);
-        List<ProductDetailResponseDTO> GetListOfProductOnSale(string walletAddress);
+        ProductDetailResponseDTO GetDetailOfProductOnSale(long productId, string walletAddress);
+        List<ProductOnSaleResponseDTO> GetListOfProductOnSale(string walletAddress);
         List<ProductDetailResponseDTO> GetListOfAllProductOnSale();
         List<ProductTypeResponseDTO> GetListOfAllProductType();
         Task CreateNewProductOnSale(ProductOnSaleDTO product);
