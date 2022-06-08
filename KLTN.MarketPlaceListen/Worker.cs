@@ -32,6 +32,7 @@ namespace KLTN.MarketPlaceListen
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         Nethereum.Web3.Web3 _web3 = new Nethereum.Web3.Web3();
         string marketplaceAddress = ListenMarketplaceAppSetting.Value.MarketplaceContractAddress;
+        string activateNFTContractAddress = ListenMarketplaceAppSetting.Value.ActivateNFTContractAddress;
         int chainNetworkId = ListenMarketplaceAppSetting.Value.ChainNetworkId;
 
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime hostApplicationLifetime)
@@ -309,7 +310,7 @@ namespace KLTN.MarketPlaceListen
         private async Task ListenRequestActivateNFT(StreamingWebSocketClient client)
         {
             Console.WriteLine(marketplaceAddress);
-            var filter = _web3.Eth.GetEvent<RequestActivateNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<RequestActivateNFTEvent>(activateNFTContractAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                 Subscribe(async log =>
@@ -337,7 +338,7 @@ namespace KLTN.MarketPlaceListen
         private async Task ListenCancelRequestActivateNFT(StreamingWebSocketClient client)
         {
             Console.WriteLine(marketplaceAddress);
-            var filter = _web3.Eth.GetEvent<CancelRequestActivateNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<CancelRequestActivateNFTEvent>(activateNFTContractAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                 Subscribe(async log =>
@@ -358,7 +359,7 @@ namespace KLTN.MarketPlaceListen
         private async Task ActivateRequestNFT(StreamingWebSocketClient client)
         {
             Console.WriteLine(marketplaceAddress);
-            var filter = _web3.Eth.GetEvent<ActivateRequestNFTEvent>(marketplaceAddress).CreateFilterInput();
+            var filter = _web3.Eth.GetEvent<ActivateRequestNFTEvent>(activateNFTContractAddress).CreateFilterInput();
             var subscription = new EthLogsObservableSubscription(client);
             subscription.GetSubscriptionDataResponsesAsObservable().
                 Subscribe(async log =>

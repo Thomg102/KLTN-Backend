@@ -287,7 +287,8 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductId = productStudent.ProductId,
                             ProductHahIPFS = productStudent.ProductHahIPFS,
                             ProductTypeName = productStudent.ProductTypeName,
-                            ProductDescription = productStudent.ProductDescription
+                            ProductDescription = productStudent.ProductDescription,
+                            ProductImg = productStudent.ProductImg
                         };
                         break;
                     }
@@ -302,7 +303,8 @@ namespace KLTN.Core.ProductServices.Implementations
                     PriceOfOneItem = product.PriceOfOneItem.ToString(),
                     ProductTypeName = productOnsale.ProductTypeName,
                     ProductDescription = productOnsale.ProductDescription,
-                    SaleAddress = product.SaleAddress
+                    SaleAddress = product.SaleAddress,
+                    ProductImg = productOnsale.ProductImg
                 });
 
                 var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
@@ -328,12 +330,6 @@ namespace KLTN.Core.ProductServices.Implementations
         {
             try
             {
-                var filter = Builders<ProductOnSale>.Filter.Where(x =>
-                    x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
-                    && x.ProductNftId == product.ProductNftId
-                );
-                await _product.DeleteOneAsync(filter);
-
                 var isExisted = false;
                 var productOnSale = _product.Find<ProductOnSale>(x => x.ProductNftId == product.ProductNftId && x.SaleAddress.ToLower() == product.SaleAddress.ToLower()).FirstOrDefault();
                 var sellingAmount = productOnSale.AmountOnSale;
@@ -366,6 +362,12 @@ namespace KLTN.Core.ProductServices.Implementations
                     });
                     await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                 }
+
+                var filter = Builders<ProductOnSale>.Filter.Where(x =>
+                    x.SaleAddress.ToLower() == product.SaleAddress.ToLower()
+                    && x.ProductNftId == product.ProductNftId
+);
+                await _product.DeleteOneAsync(filter);
             }
             catch (Exception ex)
             {
