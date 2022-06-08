@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -149,8 +150,13 @@ namespace KLTN.Core.ProductServices.Implementations
                     foreach (var listProductOnSale in listProductOnSaleGroup)
                     {
                         var totalAmountOnSale = new long();
+                        var minPrice = listProductOnSale.ToList().FirstOrDefault().PriceOfOneItem;
                         foreach (var productOnSale in listProductOnSale)
+                        {
                             totalAmountOnSale += productOnSale.AmountOnSale;
+                            if (BigInteger.Parse(productOnSale.PriceOfOneItem) < BigInteger.Parse(minPrice))
+                                minPrice = productOnSale.PriceOfOneItem;
+                        }
                         result.Add(new ProductOnSaleResponseDTO()
                         {
                             ProductName = listProductOnSale.FirstOrDefault().ProductName,
@@ -161,7 +167,8 @@ namespace KLTN.Core.ProductServices.Implementations
                             ProductHahIPFS = listProductOnSale.FirstOrDefault().ProductHahIPFS,
                             TotalAmountOnSale = totalAmountOnSale,
                             ProductTypeName = listProductOnSale.FirstOrDefault().ProductTypeName,
-                            Status = ProductStatus.OnSale.ToString()
+                            Status = ProductStatus.OnSale.ToString(),
+                            MinPrice = minPrice
                         });
                     }
                 }
@@ -197,39 +204,7 @@ namespace KLTN.Core.ProductServices.Implementations
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetListOfProductOnSale");
-                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
-            }
-        }
-
-        // Get lits of all product On sale
-        public List<ProductDetailResponseDTO> GetListOfAllProductOnSale()
-        {
-            try
-            {
-                var result = new List<ProductDetailResponseDTO>();
-                var productList = _product.Find<ProductOnSale>(_ => true).ToList();
-                if (productList != null && productList.Count > 0)
-                    foreach (var product in productList)
-                        result.Add(new ProductDetailResponseDTO()
-                        {
-                            ProductName = product.ProductName,
-                            ProductImg = product.ProductImg,
-                            ProductId = product.ProductId,
-                            ProductNftId = product.ProductNftId,
-                            ProductDescription = product.ProductDescription,
-                            ProductHahIPFS = product.ProductHahIPFS,
-                            Amount = product.AmountOnSale,
-                            ProductTypeName = product.ProductTypeName,
-                            Status = ProductStatus.OnSale.ToString(),
-                            OwnerAddress = product.SaleAddress,
-                            PriceOfOneItem = product.PriceOfOneItem
-                        });
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetListOfAllProductOnSale");
+                _logger.LogError(ex, "Error in GetListBuyerOfProductOnSale");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
@@ -295,10 +270,12 @@ namespace KLTN.Core.ProductServices.Implementations
                 var productOnsale = new ProductOnSale() { };
                 var productRemaining = new long();
                 var productToSale = new ProductOfStudentDTO() { };
+                var index = new int();
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
+                        index = (student.ProductOfStudentList).IndexOf(productStudent);
                         productRemaining = productStudent.Amount - product.AmountOnSale;
                         if (productRemaining < 0)
                             throw new CustomException("Not enough product to sale", 101);
@@ -331,7 +308,7 @@ namespace KLTN.Core.ProductServices.Implementations
                 var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
                 if (productRemaining > 0)
                 {
-                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productRemaining);
+                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productRemaining);
                     await _student.UpdateOneAsync(filter, update);
                 }
                 else
@@ -365,9 +342,10 @@ namespace KLTN.Core.ProductServices.Implementations
                 {
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
+                        int index = (student.ProductOfStudentList).IndexOf(productStudent);
                         isExisted = true;
                         var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productStudent.Amount + sellingAmount);
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productStudent.Amount + sellingAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }

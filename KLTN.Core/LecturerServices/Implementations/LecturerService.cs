@@ -105,5 +105,19 @@ namespace KLTN.Core.LecturerServicess.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task RevokeLecturerRole(List<string> lecturerAddrs)
+        {
+            try
+            {
+                var filter = Builders<Lecturer>.Filter.In(x => x.LecturerAddress.ToLower(), lecturerAddrs.ConvertAll(d => d.ToLower()));
+                await _lecturer.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RevokeLecturerRole");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

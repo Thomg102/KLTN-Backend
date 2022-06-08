@@ -15,5 +15,6 @@ namespace KLTN.Core.StudentServices.Interfaces
         List<StudentResponseDTO> GetAllStudent();
         Task CreateNewStudent(StudentDTO student);
         Task UpdateStudentIntoDatabase(string studentAddress, StudentUpdateDTO studentInfo);
+        Task RevokeStudentRole(List<string> studentAddrs);
     }
 }

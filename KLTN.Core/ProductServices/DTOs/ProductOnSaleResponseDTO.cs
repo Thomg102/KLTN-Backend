@@ -15,5 +15,6 @@ namespace KLTN.Core.ProductServices.DTOs
         public long TotalAmountOnSale { get; set; }
         public string ProductTypeName { get; set; }
         public string Status { get; set; }
+        public string MinPrice { get; set; }
     }
 }

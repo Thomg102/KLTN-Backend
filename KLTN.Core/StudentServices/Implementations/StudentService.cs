@@ -292,5 +292,19 @@ namespace KLTN.Core.StudentServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task RevokeStudentRole(List<string> studentAddrs)
+        {
+            try
+            {
+                var filter = Builders<Student>.Filter.In(x => x.StudentAddress.ToLower(), studentAddrs.ConvertAll(d => d.ToLower()));
+                await _student.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RevokeStudentRole");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

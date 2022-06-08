@@ -79,6 +79,12 @@ namespace KLTN.ManagerPoolListen
                     await ListenNewSubjectEvent(client);
                     await ListenNewScholarshipEvent(client);
                     await ListenNewTuitionEvent(client);
+                    await ListenMissionLocked(client);
+                    await ListenScholarshipLocked(client);
+                    await ListenSubjectLocked(client);
+                    await ListenTuitionLocked(client);
+                    await ListenStudentRoleRevoked(client);
+                    await ListenLecturerRoleRevoked(client);
                     _ = ListenActiveMissionContract(client);
                     _ = ListenActiveSubjectContract(client);
                     _ = ListenActiveScholarshipContract(client);
@@ -398,6 +404,138 @@ namespace KLTN.ManagerPoolListen
                          });
 
             subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed Update Info Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenMissionLocked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<MissionLockedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<MissionLockedEventDTO> decoded = Event<MissionLockedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IMissionService>();
+                        await scopedProcessingService.LockMission(decoded.Event.MissionAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Locked Mission: {decoded.Event.MissionAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenMissionLocked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenSubjectLocked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<SubjectLockedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<SubjectLockedEventDTO> decoded = Event<SubjectLockedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
+                        await scopedProcessingService.LockSubject(decoded.Event.SubjectAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Locked Subject: {decoded.Event.SubjectAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenSubjectLocked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenScholarshipLocked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<ScholarshipLockedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<ScholarshipLockedEventDTO> decoded = Event<ScholarshipLockedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
+                        await scopedProcessingService.LockScholarship(decoded.Event.ScholarshipAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Locked Scholarship: {decoded.Event.ScholarshipAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenScholarshipLocked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenTuitionLocked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<TuitionLockedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<TuitionLockedEventDTO> decoded = Event<TuitionLockedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
+                        await scopedProcessingService.LockTuition(decoded.Event.TuitionAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Locked Tuition: {decoded.Event.TuitionAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenTuitionLocked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenStudentRoleRevoked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<StudentRoleRevokedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<StudentRoleRevokedEventDTO> decoded = Event<StudentRoleRevokedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IStudentService>();
+                        await scopedProcessingService.RevokeStudentRole(decoded.Event.StudentAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Revoke Student Role: {decoded.Event.StudentAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenStudentRoleRevoked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
+        }
+
+        private async Task ListenLecturerRoleRevoked(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<LecturerRoleRevokedEventDTO>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<LecturerRoleRevokedEventDTO> decoded = Event<LecturerRoleRevokedEventDTO>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ILecturerService>();
+                        await scopedProcessingService.RevokeLecturerRole(decoded.Event.LecturerAddrs);
+
+                        await subscription.UnsubscribeAsync();
+                    };
+                    _logger.LogInformation($"Listening Revoke Lecturer Role: {decoded.Event.LecturerAddrs}");
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenLecturerRoleRevoked Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
             await subscription.SubscribeAsync(filter);
         }
 
@@ -833,6 +971,7 @@ namespace KLTN.ManagerPoolListen
         }
         #endregion
 
+        #region SCHOLARSHIP
         private async Task ListenActiveScholarshipContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -965,7 +1104,9 @@ namespace KLTN.ManagerPoolListen
                 _logger.LogError(ex, "Follow Scholarship Contract Async exception: ");
             }
         }
+        #endregion
 
+        #region TUITION
         private async Task ListenActiveTuitionContract(StreamingWebSocketClient client)
         {
             while (true)
@@ -1124,5 +1265,6 @@ namespace KLTN.ManagerPoolListen
                 _logger.LogError(ex, "Follow Tuition Contract Async exception: ");
             }
         }
+        #endregion
     }
 }

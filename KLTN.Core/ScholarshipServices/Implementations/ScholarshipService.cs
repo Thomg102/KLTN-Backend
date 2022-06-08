@@ -271,5 +271,19 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task LockScholarship(List<string> scholarshipAddrs)
+        {
+            try
+            {
+                var filter = Builders<Scholarship>.Filter.In(x => x.ScholarshipAddress.ToLower(), scholarshipAddrs.ConvertAll(d => d.ToLower()));
+                await _scholarship.DeleteManyAsync(filter);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in LockScholarship");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

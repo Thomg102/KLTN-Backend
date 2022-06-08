@@ -16,5 +16,6 @@ namespace KLTN.Core.TuitionServices.Interfaces
         Task RemoveStudentFromTuition(string tuitionAddress, int chainNetworkId, List<string> studentAddress);
         Task UpdateStudentCompeletedPayment(string tuitionAddress, int chainNetworkId, string studentAddress);
         Task CloseTuition(string tuitionAddress, int chainNetworkId);
+        Task LockTuition(List<string> tuitionAddrs);
     }
 }

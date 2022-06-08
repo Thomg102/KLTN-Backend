@@ -53,13 +53,6 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel(result));
         }
 
-        [HttpGet("")]
-        public JsonResult GetListOfAllProductOnSale()
-        {
-            var result = _productService.GetListOfAllProductOnSale();
-            return new JsonResult(new SuccessResponseModel(result));
-        }
-
         [HttpGet("type")]
         public JsonResult GetListOfAllProductType()
         {
