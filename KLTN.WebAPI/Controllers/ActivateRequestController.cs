@@ -32,10 +32,10 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel(result));
         }
 
-        [HttpGet("{productNftId}")]
-        public JsonResult GetDetailOfActivateRequest(long productNftId)
+        [HttpGet("{requestId}")]
+        public JsonResult GetDetailOfActivateRequest(long requestId)
         {
-            var result = _activateRequestService.GetDetailOfActivateRequest(productNftId);
+            var result = _activateRequestService.GetDetailOfActivateRequest(requestId);
             return new JsonResult(new SuccessResponseModel(result));
         }
 

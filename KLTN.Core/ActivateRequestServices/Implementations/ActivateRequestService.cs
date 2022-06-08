@@ -106,11 +106,11 @@ namespace KLTN.Core.RequestActivateServices.Implementations
         }
 
         // Get Detail of activate request Student/Admin
-        public ProductDetailResponseDTO GetDetailOfActivateRequest(long productNftId)
+        public ProductDetailResponseDTO GetDetailOfActivateRequest(long requestId)
         {
             try
             {
-                var activateRequest = _activateRequest.Find<ActivateRequest>(x => x.ProductNftId == productNftId).FirstOrDefault();
+                var activateRequest = _activateRequest.Find<ActivateRequest>(x => x.RequestId == requestId).FirstOrDefault();
                 return new ProductDetailResponseDTO()
                 {
                     ProductName = activateRequest.ProductName,
@@ -122,7 +122,10 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                     Amount = activateRequest.AmountToActivate,
                     ProductTypeName = activateRequest.ProductTypeName,
                     OwnerAddress = activateRequest.StudentAddress,
-                    PriceOfOneItem = "0",
+                    IsActivated = activateRequest.IsActivated,
+                    ActivatedTime = activateRequest.ActivatedTime,
+                    RequestedTime = activateRequest.RequestedTime,
+                    RequestId = activateRequest.RequestId,
                     Status = activateRequest.IsActivated ? ProductStatus.Activated.ToString() : ProductStatus.Request.ToString()
                 };
             }
