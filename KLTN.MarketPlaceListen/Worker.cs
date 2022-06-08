@@ -190,7 +190,7 @@ namespace KLTN.MarketPlaceListen
                         {
                             ProductNftId = decoded.Event.ProductId,
                             AmountOnSale = decoded.Event.AmountOnSale,
-                            PriceOfOneItem = decoded.Event.PriceOfOneItem,
+                            PriceOfOneItem = long.Parse(Nethereum.Web3.Web3.Convert.FromWei(decoded.Event.PriceOfOneItem).ToString()),
                             SaleAddress = decoded.Event.SaleAddress
                         });
                     }
