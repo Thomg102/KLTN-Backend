@@ -270,10 +270,12 @@ namespace KLTN.Core.ProductServices.Implementations
                 var productOnsale = new ProductOnSale() { };
                 var productRemaining = new long();
                 var productToSale = new ProductOfStudentDTO() { };
+                var index = new int();
                 foreach (var productStudent in student.ProductOfStudentList)
                 {
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
+                        index = (student.ProductOfStudentList).IndexOf(productStudent);
                         productRemaining = productStudent.Amount - product.AmountOnSale;
                         if (productRemaining < 0)
                             throw new CustomException("Not enough product to sale", 101);
@@ -306,7 +308,7 @@ namespace KLTN.Core.ProductServices.Implementations
                 var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
                 if (productRemaining > 0)
                 {
-                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productRemaining);
+                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productRemaining);
                     await _student.UpdateOneAsync(filter, update);
                 }
                 else
@@ -340,9 +342,10 @@ namespace KLTN.Core.ProductServices.Implementations
                 {
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
+                        int index = (student.ProductOfStudentList).IndexOf(productStudent);
                         isExisted = true;
                         var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.SaleAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productStudent.Amount + sellingAmount);
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productStudent.Amount + sellingAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }
