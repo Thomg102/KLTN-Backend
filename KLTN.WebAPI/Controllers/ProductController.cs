@@ -1,5 +1,4 @@
-﻿using KLTN.Common.Models;
-using KLTN.Core.ProductServices.DTOs;
+﻿using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.ProductServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -34,9 +33,9 @@ namespace KLTN.WebAPI.Controllers
         }
 
         [HttpGet("product-on-sale/{productNftId}")]
-        public JsonResult GetDetailOfProductOnSale(long productNftId, [FromQuery] string studentAddress)
+        public JsonResult GetDetailOfProductOnSale(long productNftId, [FromQuery] string walletAddress)
         {
-            var result = _productService.GetDetailOfProductOnSale(productNftId, studentAddress, WebAPIAppSettings.Value.AdminAddress);
+            var result = _productService.GetDetailOfProductOnSale(productNftId, walletAddress);
             return new JsonResult(new SuccessResponseModel(result));
         }
 

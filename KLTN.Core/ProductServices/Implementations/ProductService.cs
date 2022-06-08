@@ -100,15 +100,15 @@ namespace KLTN.Core.ProductServices.Implementations
         }
 
         // Get detail of specific product on sale Student/Admin
-        public ProductDetailResponseDTO GetDetailOfProductOnSale(long productNftId, string studentAddress, string adminAddress)
+        public ProductDetailResponseDTO GetDetailOfProductOnSale(long productNftId, string walletAddress)
         {
             try
             {
                 var product = new ProductOnSale();
-                if (studentAddress == null)
-                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId && x.SaleAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                if (walletAddress == null)
+                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId).FirstOrDefault();
                 else
-                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId && x.SaleAddress.ToLower() == adminAddress.ToLower()).FirstOrDefault();
+                    product = _product.Find<ProductOnSale>(x => x.ProductNftId == productNftId && x.SaleAddress.ToLower() == walletAddress.ToLower()).FirstOrDefault();
                 if (product != null)
                     return new ProductDetailResponseDTO()
                     {
@@ -193,12 +193,12 @@ namespace KLTN.Core.ProductServices.Implementations
                     if (listProductOnSale.Key == productNftId)
                         foreach (var productOnSale in listProductOnSale)
                             result.Add(new BuyerOfProductOnSaleResponseDTO()
-                                {
-                                    OwnerAddress = productOnSale.SaleAddress.ToLower(),
-                                    AmountOnSale = productOnSale.AmountOnSale,
-                                    PriceOfOneItem = productOnSale.PriceOfOneItem,
-                                    Status = ProductStatus.OnSale.ToString()
-                                });
+                            {
+                                OwnerAddress = productOnSale.SaleAddress.ToLower(),
+                                AmountOnSale = productOnSale.AmountOnSale,
+                                PriceOfOneItem = productOnSale.PriceOfOneItem,
+                                Status = ProductStatus.OnSale.ToString()
+                            });
                 }
                 return result;
             }
@@ -398,8 +398,10 @@ namespace KLTN.Core.ProductServices.Implementations
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
                         isExisted = true;
+                        int index = (student.ProductOfStudentList).IndexOf(productStudent);
+
                         var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.BuyerAddress.ToLower());
-                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productStudent.Amount + product.BuyAmount);
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productStudent.Amount + product.BuyAmount);
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                         break;
                     }
