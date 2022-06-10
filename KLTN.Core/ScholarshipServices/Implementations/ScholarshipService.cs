@@ -52,7 +52,10 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                     JoinedStudentAmount = scholarship.JoinedStudentAmount,
                     LecturerName = scholarship.LecturerName,
                     TokenAmount = scholarship.TokenAmount,
-                    JoinedStudentList = scholarship.JoinedStudentList
+                    JoinedStudentList = scholarship.JoinedStudentList,
+                    ChainNetworkId = scholarship.ChainNetworkId,
+                    ScholarshipImg = scholarship.ScholarshipImg,
+                    IsJoined = false
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in scholarship.JoinedStudentList)
@@ -96,7 +99,16 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                                     JoinedStudentAmount = joinedScholarship.JoinedStudentAmount,
                                     ScholarshipStatus = joinedScholarship.ScholarshipStatus,
                                     IsJoined = true,
-                                    StartTime = joinedScholarship.StartTime
+                                    StartTime = joinedScholarship.StartTime,
+                                    ChainNetworkId = joinedScholarship.ChainNetworkId,
+                                    EndTime = joinedScholarship.EndTime,
+                                    JoinedStudentList = joinedScholarship.JoinedStudentList,
+                                    LecturerInCharge = joinedScholarship.LecturerInCharge,
+                                    LecturerName = joinedScholarship.LecturerName,
+                                    ScholarShipDescription = joinedScholarship.ScholarShipDescription,
+                                    ScholarshipHashIPFS = joinedScholarship.ScholarshipHashIPFS,
+                                    ScholarshipImg = joinedScholarship.ScholarshipImg,
+                                    TokenAmount = joinedScholarship.TokenAmount
                                 });
                                 isExistedJoinedStudent = true;
                                 break;
@@ -111,7 +123,16 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                             JoinedStudentAmount = joinedScholarship.JoinedStudentAmount,
                             ScholarshipStatus = joinedScholarship.ScholarshipStatus,
                             IsJoined = false,
-                            StartTime = joinedScholarship.StartTime
+                            StartTime = joinedScholarship.StartTime,
+                            ChainNetworkId = joinedScholarship.ChainNetworkId,
+                            EndTime = joinedScholarship.EndTime,
+                            JoinedStudentList = joinedScholarship.JoinedStudentList,
+                            LecturerInCharge = joinedScholarship.LecturerInCharge,
+                            LecturerName = joinedScholarship.LecturerName,
+                            ScholarShipDescription = joinedScholarship.ScholarShipDescription,
+                            ScholarshipHashIPFS = joinedScholarship.ScholarshipHashIPFS,
+                            ScholarshipImg = joinedScholarship.ScholarshipImg,
+                            TokenAmount = joinedScholarship.TokenAmount
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();

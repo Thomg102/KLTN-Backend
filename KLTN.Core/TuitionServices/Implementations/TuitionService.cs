@@ -50,7 +50,17 @@ namespace KLTN.Core.TuitionServices.Implementations
                     EndTime = tuition.EndTime,
                     JoinedStudentAmount = tuition.JoinedStudentAmount,
                     TokenAmount = tuition.TokenAmount,
-                    JoinedStudentList = tuition.JoinedStudentList
+                    JoinedStudentList = tuition.JoinedStudentList,
+                    IsJoined = false,
+                    ChainNetworkId = tuition.ChainNetworkId,
+                    CurrencyAmount = tuition.CurrencyAmount,
+                    ImgURL = tuition.ImgURL,
+                    LecturerInCharge = tuition.LecturerInCharge,
+                    LecturerName = tuition.LecturerName,
+                    SchoolYear = tuition.SchoolYear,
+                    TuitionAddress = tuition.TuitionAddress,
+                    TuitionHashIPFS = tuition.TuitionHashIPFS,
+                    TuitionId = tuition.TuitionId,
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in tuition.JoinedStudentList)
@@ -81,7 +91,6 @@ namespace KLTN.Core.TuitionServices.Implementations
                     joinedTuitions = _tuition.Find<Tuition>(x => x.SchoolYear == studentSchoolYear).ToList();
                 foreach (var joinedTuition in joinedTuitions)
                 {
-                    var isExistedJoinedStudent = false;
                     if (studentAddress != null)
                         foreach (var joinedStudentList in joinedTuition.JoinedStudentList)
                         {
@@ -89,31 +98,53 @@ namespace KLTN.Core.TuitionServices.Implementations
                             {
                                 result.Add(new StudentTuitionResponseDTO()
                                 {
-                                    TuitionId = joinedTuition.TuitionId,
                                     TuitionName = joinedTuition.TuitionName,
-                                    TuitionAddress = joinedTuition.TuitionAddress,
-                                    JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
+                                    TuitionDescription = joinedTuition.TuitionDescription,
                                     TuitionStatus = joinedTuition.TuitionStatus,
-                                    IsJoined = true,
                                     StartTime = joinedTuition.StartTime,
-                                    IsCompleted = joinedStudentList.IsCompleted,
+                                    EndTime = joinedTuition.EndTime,
+                                    JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
+                                    TokenAmount = joinedTuition.TokenAmount,
+                                    JoinedStudentList = joinedTuition.JoinedStudentList,
+                                    IsJoined = true,
+                                    IsCompleted = true,
+                                    ChainNetworkId = joinedTuition.ChainNetworkId,
+                                    CurrencyAmount = joinedTuition.CurrencyAmount,
+                                    ImgURL = joinedTuition.ImgURL,
+                                    LecturerInCharge = joinedTuition.LecturerInCharge,
+                                    LecturerName = joinedTuition.LecturerName,
+                                    SchoolYear = joinedTuition.SchoolYear,
+                                    TuitionAddress = joinedTuition.TuitionAddress,
+                                    TuitionHashIPFS = joinedTuition.TuitionHashIPFS,
+                                    TuitionId = joinedTuition.TuitionId
                                 });
-                                isExistedJoinedStudent = true;
                                 break;
                             }
                         }
-/*                    if (!isExistedJoinedStudent)
+                    else
                         result.Add(new StudentTuitionResponseDTO()
                         {
-                            TuitionId = joinedTuition.TuitionId,
                             TuitionName = joinedTuition.TuitionName,
-                            TuitionAddress = joinedTuition.TuitionAddress,
-                            JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
+                            TuitionDescription = joinedTuition.TuitionDescription,
                             TuitionStatus = joinedTuition.TuitionStatus,
-                            IsJoined = false,
                             StartTime = joinedTuition.StartTime,
-                            IsCompleted = false
-                        }); */
+                            EndTime = joinedTuition.EndTime,
+                            JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
+                            TokenAmount = joinedTuition.TokenAmount,
+                            JoinedStudentList = joinedTuition.JoinedStudentList,
+                            IsJoined = false,
+                            IsCompleted = false,
+                            ChainNetworkId = joinedTuition.ChainNetworkId,
+                            CurrencyAmount = joinedTuition.CurrencyAmount,
+                            ImgURL = joinedTuition.ImgURL,
+                            LecturerInCharge = joinedTuition.LecturerInCharge,
+                            LecturerName = joinedTuition.LecturerName,
+                            SchoolYear = joinedTuition.SchoolYear,
+                            TuitionAddress = joinedTuition.TuitionAddress,
+                            TuitionHashIPFS = joinedTuition.TuitionHashIPFS,
+                            TuitionId = joinedTuition.TuitionId
+                        });
+                    break;
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
             }
