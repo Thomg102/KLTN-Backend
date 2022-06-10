@@ -55,7 +55,14 @@ namespace KLTN.Core.SubjectServices.Implementations
                     MaxStudentAmount = subject.MaxStudentAmount,
                     JoinedStudentAmount = subject.JoinedStudentAmount,
                     LecturerName = subject.LecturerName,
-                    JoinedStudentList = subject.JoinedStudentList
+                    JoinedStudentList = subject.JoinedStudentList,
+                    ChainNetworkId = subject.ChainNetworkId,
+                    LecturerAddress = subject.LecturerAddress,
+                    SubjectAddress = subject.SubjectAddress,
+                    SubjectHashIPFS = subject.SubjectHashIPFS,
+                    SubjectId = subject.SubjectId,
+                    SubjectImg = subject.SubjectImg,
+                    IsJoined =false
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in subject.JoinedStudentList)
@@ -91,15 +98,26 @@ namespace KLTN.Core.SubjectServices.Implementations
                             {
                                 result.Add(new StudentSubjectResponseDTO()
                                 {
-                                    SubjectId = joinedSubject.SubjectId,
                                     SubjectName = joinedSubject.SubjectName,
-                                    SubjectAddress = joinedSubject.SubjectAddress,
                                     SubjectShortenName = joinedSubject.SubjectShortenName,
+                                    SubjectDescription = joinedSubject.SubjectDescription,
+                                    SubjectStatus = joinedSubject.SubjectStatus,
+                                    DepartmentName = joinedSubject.DepartmentName,
+                                    StartTime = joinedSubject.StartTime,
+                                    EndTime = joinedSubject.EndTime,
+                                    EndTimeToResigter = joinedSubject.EndTimeToResigter,
+                                    EndTimeToComFirm = joinedSubject.EndTimeToComFirm,
                                     MaxStudentAmount = joinedSubject.MaxStudentAmount,
                                     JoinedStudentAmount = joinedSubject.JoinedStudentAmount,
-                                    SubjectStatus = joinedSubject.SubjectStatus,
-                                    IsJoined = true,
-                                    StartTime = joinedSubject.StartTime
+                                    LecturerName = joinedSubject.LecturerName,
+                                    JoinedStudentList = joinedSubject.JoinedStudentList,
+                                    ChainNetworkId = joinedSubject.ChainNetworkId,
+                                    LecturerAddress = joinedSubject.LecturerAddress,
+                                    SubjectAddress = joinedSubject.SubjectAddress,
+                                    SubjectHashIPFS = joinedSubject.SubjectHashIPFS,
+                                    SubjectId = joinedSubject.SubjectId,
+                                    SubjectImg = joinedSubject.SubjectImg,
+                                    IsJoined = true
                                 });
                                 isExistedJoinedStudent = true;
                                 break;
@@ -108,15 +126,26 @@ namespace KLTN.Core.SubjectServices.Implementations
                     if (!isExistedJoinedStudent)
                         result.Add(new StudentSubjectResponseDTO()
                         {
-                            SubjectId = joinedSubject.SubjectId,
                             SubjectName = joinedSubject.SubjectName,
-                            SubjectAddress = joinedSubject.SubjectAddress,
                             SubjectShortenName = joinedSubject.SubjectShortenName,
+                            SubjectDescription = joinedSubject.SubjectDescription,
+                            SubjectStatus = joinedSubject.SubjectStatus,
+                            DepartmentName = joinedSubject.DepartmentName,
+                            StartTime = joinedSubject.StartTime,
+                            EndTime = joinedSubject.EndTime,
+                            EndTimeToResigter = joinedSubject.EndTimeToResigter,
+                            EndTimeToComFirm = joinedSubject.EndTimeToComFirm,
                             MaxStudentAmount = joinedSubject.MaxStudentAmount,
                             JoinedStudentAmount = joinedSubject.JoinedStudentAmount,
-                            SubjectStatus = joinedSubject.SubjectStatus,
-                            IsJoined = false,
-                            StartTime = joinedSubject.StartTime
+                            LecturerName = joinedSubject.LecturerName,
+                            JoinedStudentList = joinedSubject.JoinedStudentList,
+                            ChainNetworkId = joinedSubject.ChainNetworkId,
+                            LecturerAddress = joinedSubject.LecturerAddress,
+                            SubjectAddress = joinedSubject.SubjectAddress,
+                            SubjectHashIPFS = joinedSubject.SubjectHashIPFS,
+                            SubjectId = joinedSubject.SubjectId,
+                            SubjectImg = joinedSubject.SubjectImg,
+                            IsJoined = false
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();

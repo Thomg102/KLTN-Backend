@@ -45,7 +45,11 @@ namespace KLTN.Core.MissionServices.Implementations
                 var mission = _mission.Find<Mission>(x => x.MissionAddress.ToLower() == missionAddress.ToLower()).FirstOrDefault();
                 var result = new MissionDetailResponseDTO()
                 {
+                    ChainNetworkId = mission.ChainNetworkId,
+                    MissionId = mission.MissionId,
+                    MissionImg = mission.MissionImg,
                     MissionName = mission.MissionName,
+                    MissionAddress = mission.MissionAddress,
                     MissionShortenName = mission.MissionShortenName,
                     MissionDescription = mission.MissionDescription,
                     MissionStatus = mission.MissionStatus,
@@ -55,10 +59,12 @@ namespace KLTN.Core.MissionServices.Implementations
                     EndTimeToResigter = mission.EndTimeToResigter,
                     EndTimeToComFirm = mission.EndTimeToComFirm,
                     MaxStudentAmount = mission.MaxStudentAmount,
-                    JoinedStudentAmount = mission.JoinedStudentAmount,
+                    LecturerAddress = mission.LecturerAddress,
                     LecturerName = mission.LecturerName,
                     TokenAmount = mission.TokenAmount,
-                    JoinedStudentList = mission.JoinedStudentList
+                    JoinedStudentList = mission.JoinedStudentList,
+                    JoinedStudentAmount = mission.JoinedStudentAmount,
+                    IsJoined = false
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in mission.JoinedStudentList)
@@ -94,15 +100,26 @@ namespace KLTN.Core.MissionServices.Implementations
                             {
                                 result.Add(new StudentMissionResponseDTO()
                                 {
+                                    ChainNetworkId = joinedMission.ChainNetworkId,
                                     MissionId = joinedMission.MissionId,
+                                    MissionImg = joinedMission.MissionImg,
                                     MissionName = joinedMission.MissionName,
                                     MissionAddress = joinedMission.MissionAddress,
                                     MissionShortenName = joinedMission.MissionShortenName,
-                                    MaxStudentAmount = joinedMission.MaxStudentAmount,
-                                    JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                                    MissionDescription = joinedMission.MissionDescription,
                                     MissionStatus = joinedMission.MissionStatus,
-                                    IsJoined = true,
-                                    StartTime = joinedMission.StartTime
+                                    DepartmentName = joinedMission.DepartmentName,
+                                    StartTime = joinedMission.StartTime,
+                                    EndTime = joinedMission.EndTime,
+                                    EndTimeToResigter = joinedMission.EndTimeToResigter,
+                                    EndTimeToComFirm = joinedMission.EndTimeToComFirm,
+                                    MaxStudentAmount = joinedMission.MaxStudentAmount,
+                                    LecturerAddress = joinedMission.LecturerAddress,
+                                    LecturerName = joinedMission.LecturerName,
+                                    TokenAmount = joinedMission.TokenAmount,
+                                    JoinedStudentList = joinedMission.JoinedStudentList,
+                                    JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                                    IsJoined = true
                                 });
                                 isExistedJoinedStudent = true;
                                 break;
@@ -111,15 +128,26 @@ namespace KLTN.Core.MissionServices.Implementations
                     if (!isExistedJoinedStudent)
                         result.Add(new StudentMissionResponseDTO()
                         {
+                            ChainNetworkId = joinedMission.ChainNetworkId,
                             MissionId = joinedMission.MissionId,
+                            MissionImg = joinedMission.MissionImg,
                             MissionName = joinedMission.MissionName,
                             MissionAddress = joinedMission.MissionAddress,
                             MissionShortenName = joinedMission.MissionShortenName,
-                            MaxStudentAmount = joinedMission.MaxStudentAmount,
-                            JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                            MissionDescription = joinedMission.MissionDescription,
                             MissionStatus = joinedMission.MissionStatus,
-                            IsJoined = false,
-                            StartTime = joinedMission.StartTime
+                            DepartmentName = joinedMission.DepartmentName,
+                            StartTime = joinedMission.StartTime,
+                            EndTime = joinedMission.EndTime,
+                            EndTimeToResigter = joinedMission.EndTimeToResigter,
+                            EndTimeToComFirm = joinedMission.EndTimeToComFirm,
+                            MaxStudentAmount = joinedMission.MaxStudentAmount,
+                            LecturerAddress = joinedMission.LecturerAddress,
+                            LecturerName = joinedMission.LecturerName,
+                            TokenAmount = joinedMission.TokenAmount,
+                            JoinedStudentList = joinedMission.JoinedStudentList,
+                            JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                            IsJoined = false
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
