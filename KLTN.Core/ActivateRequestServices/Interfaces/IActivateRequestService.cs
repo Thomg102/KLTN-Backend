@@ -9,7 +9,7 @@ namespace KLTN.Core.RequestActivateServices.Interfaces
     {
         List<ActivateRequestResponseDTO> GetListOfActivateRequesting(string studentAddress);
         List<ActivateRequestResponseDTO> GetListOfActivatedRequest(string studentAddress);
-        ProductDetailResponseDTO GetDetailOfActivateRequest(long productNftId);
+        ProductDetailResponseDTO GetDetailOfActivateRequest(long requestId);
         Task CreateNewActivateRequest(RequestActivateDTO product);
         Task CancelActivateRequest(List<long> requestIds);
         Task ActivateRequest(ActivateRequestDTO request);
