@@ -57,7 +57,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             IsActivated = activateRequesting.IsActivated,
                             ProductImg = activateRequesting.ProductImg,
                             ProductDescription = activateRequesting.ProductDescription,
-                            ActivatedTime = activateRequesting.ActivatedTime
+                            ActivatedTime = activateRequesting.ActivatedTime,
+                            ProductNftId = activateRequesting.ProductNftId,
                         });
                 return result;
             }

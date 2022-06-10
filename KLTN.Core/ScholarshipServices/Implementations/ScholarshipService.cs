@@ -1,19 +1,16 @@
 ﻿using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
 using KLTN.Core.ScholarshipServices.DTOs;
 using KLTN.Core.ScholarshipServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -43,6 +40,11 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 var scholarship = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower()).FirstOrDefault();
                 var result = new ScholarshipDetailResponseDTO()
                 {
+                    LecturerInCharge = scholarship.LecturerInCharge,
+                    ScholarshipAddress = scholarship.ScholarshipAddress,
+                    ScholarShipDescription = scholarship.ScholarShipDescription,
+                    ScholarshipHashIPFS = scholarship.ScholarshipHashIPFS,
+                    ScholarshipId = scholarship.ScholarshipId,
                     ScholarshipName = scholarship.ScholarshipName,
                     ScholarshipStatus = scholarship.ScholarshipStatus,
                     StartTime = scholarship.StartTime,
@@ -182,7 +184,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var scholarshipList = await _scholarship.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetworkId ==chainNetworkId)
+                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.ScholarshipAddress)
                 .ToListAsync();
             return scholarshipList;
