@@ -1,19 +1,16 @@
 ﻿using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
 using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -62,11 +59,11 @@ namespace KLTN.Core.SubjectServices.Implementations
                     SubjectHashIPFS = subject.SubjectHashIPFS,
                     SubjectId = subject.SubjectId,
                     SubjectImg = subject.SubjectImg,
-                    IsJoined =false
+                    IsJoined = false
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in subject.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             result.IsJoined = true;
                             break;

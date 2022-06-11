@@ -79,7 +79,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
             try
             {
                 var result = new List<StudentScholarshipResponseDTO>();
-                var studentDepartment = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().DepartmentName;
+                //var studentDepartment = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().DepartmentName;
                 var joinedScholarships = _scholarship.Find<Scholarship>(_ => true).ToList();
                 /* if (studentAddress != null)
                      joinedScholarships = _scholarship.Find<Scholarship>(x => x.DepartmentName.ToLower() == studentDepartment.ToLower()).ToList();*/

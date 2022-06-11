@@ -1,19 +1,16 @@
 ﻿using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -85,10 +82,12 @@ namespace KLTN.Core.TuitionServices.Implementations
             try
             {
                 var result = new List<StudentTuitionResponseDTO>();
-                var studentSchoolYear = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().SchoolYear;
                 var joinedTuitions = _tuition.Find<Tuition>(_ => true).ToList();
                 if (studentAddress != null)
+                {
+                    var studentSchoolYear = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().SchoolYear;
                     joinedTuitions = _tuition.Find<Tuition>(x => x.SchoolYear == studentSchoolYear).ToList();
+                }
                 foreach (var joinedTuition in joinedTuitions)
                 {
                     if (studentAddress != null)

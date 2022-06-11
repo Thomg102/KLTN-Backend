@@ -237,7 +237,7 @@ namespace KLTN.Core.ProductServices.Implementations
             try
             {
                 var productOnSales = _product.Find<ProductOnSale>(_ => true).ToList();
-                var productType = _productType.Find<ProductType>(x => x.ProductTypeAlias == product.ProductTypeName).First();
+                //var productType = _productType.Find<ProductType>(x => x.ProductTypeAlias == product.ProductTypeName).First();
                 foreach (var productOnSale in productOnSales)
                     if (product.ProductId == productOnSale.ProductId)
                         throw new CustomException("Create existed Product", 100);
@@ -250,7 +250,7 @@ namespace KLTN.Core.ProductServices.Implementations
                     ProductHahIPFS = product.ProductHahIPFS,
                     AmountOnSale = product.AmountOnSale,
                     PriceOfOneItem = product.PriceOfOneItem.ToString(),
-                    ProductTypeName = productType.ProductTypeName,
+                    ProductTypeName = product.ProductTypeName,
                     ProductDescription = product.ProductDescription,
                     SaleAddress = product.SaleAddress
                 });
