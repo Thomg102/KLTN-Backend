@@ -181,13 +181,25 @@ namespace KLTN.Core.MissionServices.Implementations
                     if (joinedMission.LecturerAddress.ToLower() == lecturerAddress.ToLower())
                         result.Add(new LecturerMissionResponseDTO()
                         {
+                            ChainNetworkId = joinedMission.ChainNetworkId,
+                            MissionId = joinedMission.MissionId,
+                            MissionImg = joinedMission.MissionImg,
                             MissionName = joinedMission.MissionName,
                             MissionAddress = joinedMission.MissionAddress,
                             MissionShortenName = joinedMission.MissionShortenName,
-                            MaxStudentAmount = joinedMission.MaxStudentAmount,
-                            JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                            MissionDescription = joinedMission.MissionDescription,
                             MissionStatus = joinedMission.MissionStatus,
-                            StartTime = joinedMission.StartTime
+                            DepartmentName = joinedMission.DepartmentName,
+                            StartTime = joinedMission.StartTime,
+                            EndTime = joinedMission.EndTime,
+                            EndTimeToResigter = joinedMission.EndTimeToResigter,
+                            EndTimeToComFirm = joinedMission.EndTimeToComFirm,
+                            MaxStudentAmount = joinedMission.MaxStudentAmount,
+                            LecturerAddress = joinedMission.LecturerAddress,
+                            LecturerName = joinedMission.LecturerName,
+                            TokenAmount = joinedMission.TokenAmount,
+                            JoinedStudentList = joinedMission.JoinedStudentList,
+                            JoinedStudentAmount = joinedMission.JoinedStudentAmount,
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();

@@ -167,12 +167,25 @@ namespace KLTN.Core.SubjectServices.Implementations
                         result.Add(new LecturerSubjectResponseDTO()
                         {
                             SubjectName = joinedSubject.SubjectName,
-                            SubjectAddress = joinedSubject.SubjectAddress,
                             SubjectShortenName = joinedSubject.SubjectShortenName,
+                            SubjectDescription = joinedSubject.SubjectDescription,
+                            SubjectStatus = joinedSubject.SubjectStatus,
+                            DepartmentName = joinedSubject.DepartmentName,
+                            StartTime = joinedSubject.StartTime,
+                            EndTime = joinedSubject.EndTime,
+                            EndTimeToResigter = joinedSubject.EndTimeToResigter,
+                            EndTimeToComFirm = joinedSubject.EndTimeToComFirm,
                             MaxStudentAmount = joinedSubject.MaxStudentAmount,
                             JoinedStudentAmount = joinedSubject.JoinedStudentAmount,
-                            SubjectStatus = joinedSubject.SubjectStatus,
-                            StartTime = joinedSubject.StartTime
+                            LecturerName = joinedSubject.LecturerName,
+                            JoinedStudentList = joinedSubject.JoinedStudentList,
+                            ChainNetworkId = joinedSubject.ChainNetworkId,
+                            LecturerAddress = joinedSubject.LecturerAddress,
+                            SubjectAddress = joinedSubject.SubjectAddress,
+                            SubjectHashIPFS = joinedSubject.SubjectHashIPFS,
+                            SubjectId = joinedSubject.SubjectId,
+                            SubjectImg = joinedSubject.SubjectImg,
+                            IsJoined = false
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();

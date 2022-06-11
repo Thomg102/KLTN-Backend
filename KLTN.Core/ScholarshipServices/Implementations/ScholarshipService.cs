@@ -150,17 +150,27 @@ namespace KLTN.Core.ScholarshipServices.Implementations
             try
             {
                 var result = new List<LecturerScholarshipResponseDTO>();
-                var joinedScholarship = _scholarship.Find<Scholarship>(_ => true).ToList();
-                foreach (var joinedSubject in joinedScholarship)
+                var joinedScholarships = _scholarship.Find<Scholarship>(_ => true).ToList();
+                foreach (var joinedScholarship in joinedScholarships)
                 {
-                    if (joinedSubject.LecturerInCharge.ToLower() == lecturerAddress.ToLower())
+                    if (joinedScholarship.LecturerInCharge.ToLower() == lecturerAddress.ToLower())
                         result.Add(new LecturerScholarshipResponseDTO()
                         {
-                            ScholarshipName = joinedSubject.ScholarshipName,
-                            ScholarshipAddress = joinedSubject.ScholarshipAddress,
-                            JoinedStudentAmount = joinedSubject.JoinedStudentAmount,
-                            ScholarshipStatus = joinedSubject.ScholarshipStatus,
-                            StartTime = joinedSubject.StartTime
+                            ScholarshipId = joinedScholarship.ScholarshipId,
+                            ScholarshipName = joinedScholarship.ScholarshipName,
+                            ScholarshipAddress = joinedScholarship.ScholarshipAddress,
+                            JoinedStudentAmount = joinedScholarship.JoinedStudentAmount,
+                            ScholarshipStatus = joinedScholarship.ScholarshipStatus,
+                            StartTime = joinedScholarship.StartTime,
+                            ChainNetworkId = joinedScholarship.ChainNetworkId,
+                            EndTime = joinedScholarship.EndTime,
+                            JoinedStudentList = joinedScholarship.JoinedStudentList,
+                            LecturerInCharge = joinedScholarship.LecturerInCharge,
+                            LecturerName = joinedScholarship.LecturerName,
+                            ScholarShipDescription = joinedScholarship.ScholarShipDescription,
+                            ScholarshipHashIPFS = joinedScholarship.ScholarshipHashIPFS,
+                            ScholarshipImg = joinedScholarship.ScholarshipImg,
+                            TokenAmount = joinedScholarship.TokenAmount
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
