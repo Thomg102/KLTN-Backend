@@ -13,8 +13,11 @@ namespace KLTN.Core.ScholarshipServices.Interfaces
         List<LecturerScholarshipResponseDTO> GetAllScholarshipOfLecturer(string lecturerAddress);
         Task CreateNewScholarship(ScholarshipDTO scholarship);
         Task<List<string>> GetScholarshipListInProgress(int chainNetworkId);
-        Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList);
-        Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddress);
+        Task UpdateStudentRegister(string scholarshipAddress, int chainNetworkId, string studentAddress);
+        Task UpdateStudentCancelRegister(string scholarshipAddress, int chainNetworkId, string studentAddress);
+        Task UpdateLecturerConfirmComplete(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList);
+        Task UpdateLecturerUnConfirmComplete(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList);
+
         Task CloseScholarship(string scholarshipAddress, int chainNetworkId);
         Task LockScholarship(List<string> scholarshipAddrs);
     }

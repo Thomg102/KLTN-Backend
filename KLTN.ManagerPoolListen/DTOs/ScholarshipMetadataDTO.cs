@@ -31,6 +31,12 @@ namespace KLTN.ManagerPoolListen.DTOs
         [JsonProperty("endTime")]
         public int EndTime { get; set; }
 
+        [JsonProperty("endTimeToRegister")]
+        public int EndTimeToRegister { get; set; }
+
+        [JsonProperty("endTimeToConfirm")]
+        public int EndTimeToConfirm { get; set; }
+
         [JsonProperty("description")]
         public string Description { get; set; }
     }
