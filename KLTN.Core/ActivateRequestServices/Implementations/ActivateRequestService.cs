@@ -288,6 +288,10 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                         Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
                     };
                     await SendMail(mailContent);
+
+                    var filterUpdateCodeUsed = Builders<CodeActivateProduct>.Filter.Where(x => x.Code == codeActivate);
+                    var updateUpdateCodeUsed = Builders<CodeActivateProduct>.Update.Set(x => x.IsUsed, true);
+                    await _codeActivate.UpdateOneAsync(filterUpdateCodeUsed, updateUpdateCodeUsed);
                 }
             }
             catch (Exception ex)
@@ -324,7 +328,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 var emailsavefile = string.Format(@"mailssave/{0}.eml", Guid.NewGuid());
                 await email.WriteToAsync(emailsavefile);
 
-                _logger.LogInformation("Lỗi gửi mail, lưu tại - " + emailsavefile);
+                _logger.LogInformation("Error send mail, stored at - " + emailsavefile);
                 _logger.LogError(ex.Message);
             }
 
