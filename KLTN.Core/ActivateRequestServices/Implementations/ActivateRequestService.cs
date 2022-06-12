@@ -285,7 +285,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                     var mailContent = new MailContent(){
                         To = studentId + mailSettings.Domain.ToLower(),
                         Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
-                        Body = "Ma kich hoat vat pham " + nameProduct + " : " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
+                        Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
                     };
                     await SendMail(mailContent);
                 }
