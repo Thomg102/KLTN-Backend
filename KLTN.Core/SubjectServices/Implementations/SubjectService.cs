@@ -185,7 +185,6 @@ namespace KLTN.Core.SubjectServices.Implementations
                             SubjectHashIPFS = joinedSubject.SubjectHashIPFS,
                             SubjectId = joinedSubject.SubjectId,
                             SubjectImg = joinedSubject.SubjectImg,
-                            IsJoined = false
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();

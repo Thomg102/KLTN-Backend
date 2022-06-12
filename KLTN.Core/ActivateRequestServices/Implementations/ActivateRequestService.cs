@@ -1,12 +1,16 @@
 ﻿using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
+using KLTN.Common.Models.AppSettingModels;
 using KLTN.Core.ActivateRequestServices.DTOs;
 using KLTN.Core.ProductServices.DTOs;
 using KLTN.Core.RequestActivateServices.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
+using MailKit.Security;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeKit;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -22,13 +26,19 @@ namespace KLTN.Core.RequestActivateServices.Implementations
         private readonly IMongoDbContext _context;
         private readonly IMongoCollection<ActivateRequest> _activateRequest;
         private readonly IMongoCollection<Student> _student;
+        private readonly IMongoCollection<ProductType> _productType;
+        private readonly IMongoCollection<CodeActivateProduct> _codeActivate;
+        private readonly MailSettings mailSettings;
 
-        public ActivateRequestService(ILogger<ActivateRequestService> logger, IMongoDbContext context)
+        public ActivateRequestService(ILogger<ActivateRequestService> logger, IMongoDbContext context, IOptions<MailSettings> settings)
         {
             _logger = logger;
             _context = context;
             _activateRequest = _context.GetCollection<ActivateRequest>(typeof(ActivateRequest).Name);
             _student = _context.GetCollection<Student>(typeof(Student).Name);
+            _productType = _context.GetCollection<ProductType>(typeof(ProductType).Name);
+            _codeActivate = _context.GetCollection<CodeActivateProduct>(typeof(CodeActivateProduct).Name);
+            mailSettings = settings.Value;
         }
 
         // Get list of Activate requesting Student/Admin
@@ -262,12 +272,65 @@ namespace KLTN.Core.RequestActivateServices.Implementations
 
                 await _activateRequest.UpdateOneAsync(filter, updateStatus);
                 await _activateRequest.UpdateOneAsync(filter, updateActivateTime);
+
+                var productTypeName = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductTypeName;
+                var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeAlias.ToLower() == productTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
+                if (isIdependentNFT)
+                {
+                    var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false).FirstOrDefault().Code;
+                    var studentAddress = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().StudentAddress;
+                    var studentId = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().StudentId;
+                    var nameProduct = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductName;
+
+                    var mailContent = new MailContent(){
+                        To = studentId + mailSettings.Domain.ToLower(),
+                        Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
+                        Body = "Ma kich hoat vat pham " + nameProduct + " : " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
+                    };
+                    await SendMail(mailContent);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in ActivateRequest");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
+        }
+
+        public async Task SendMail(MailContent mailContent)
+        {
+            var email = new MimeMessage();
+            email.Sender = new MailboxAddress(mailSettings.DisplayName, mailSettings.Mail);
+            email.From.Add(new MailboxAddress(mailSettings.DisplayName, mailSettings.Mail));
+            email.To.Add(MailboxAddress.Parse(mailContent.To));
+            email.Subject = mailContent.Subject;
+
+
+            var builder = new BodyBuilder();
+            builder.HtmlBody = mailContent.Body;
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new MailKit.Net.Smtp.SmtpClient();
+
+            try
+            {
+                smtp.Connect(mailSettings.Host, mailSettings.Port, SecureSocketOptions.StartTls);
+                smtp.Authenticate(mailSettings.Mail, mailSettings.Password);
+                await smtp.SendAsync(email);
+            }
+            catch (Exception ex)
+            {
+                System.IO.Directory.CreateDirectory("mailssave");
+                var emailsavefile = string.Format(@"mailssave/{0}.eml", Guid.NewGuid());
+                await email.WriteToAsync(emailsavefile);
+
+                _logger.LogInformation("Lỗi gửi mail, lưu tại - " + emailsavefile);
+                _logger.LogError(ex.Message);
+            }
+
+            smtp.Disconnect(true);
+
+            _logger.LogInformation("send mail to " + mailContent.To);
         }
     }
 }
