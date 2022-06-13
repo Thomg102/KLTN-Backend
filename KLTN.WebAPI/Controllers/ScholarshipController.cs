@@ -1,11 +1,8 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.ScholarshipServices.DTOs;
+﻿using KLTN.Core.ScholarshipServices.DTOs;
 using KLTN.Core.ScholarshipServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {

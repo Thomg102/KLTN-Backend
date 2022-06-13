@@ -1,12 +1,9 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.MissionServices.DTOs;
+﻿using KLTN.Core.MissionServices.DTOs;
 using KLTN.Core.MissionServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {
@@ -72,7 +69,7 @@ namespace KLTN.WebAPI.Controllers
         }
 
         [HttpPost("UpdateLecturerConfirmComplete/{missionAddress}/{chainNetworkId}")]
-        public JsonResult UpdateLecturerConfirmComplete( string missionAddress, int chainNetworkId, [FromBody] List<string> studentList)
+        public JsonResult UpdateLecturerConfirmComplete(string missionAddress, int chainNetworkId, [FromBody] List<string> studentList)
         {
             _missionService.UpdateLecturerConfirmComplete(missionAddress, chainNetworkId, studentList);
             return new JsonResult(new SuccessResponseModel());

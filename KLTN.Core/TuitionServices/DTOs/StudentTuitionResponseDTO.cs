@@ -1,7 +1,5 @@
 ﻿using KLTN.DAL.Models.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.Core.TuitionServices.DTOs
 {

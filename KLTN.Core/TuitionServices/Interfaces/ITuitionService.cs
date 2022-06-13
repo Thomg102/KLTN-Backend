@@ -1,7 +1,6 @@
 ﻿using KLTN.Core.TuitionServices.DTOs;
-using System;
+using KLTN.DAL.Models.Entities;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace KLTN.Core.TuitionServices.Interfaces
@@ -17,5 +16,6 @@ namespace KLTN.Core.TuitionServices.Interfaces
         Task UpdateStudentCompeletedPayment(string tuitionAddress, int chainNetworkId, string studentAddress);
         Task CloseTuition(string tuitionAddress, int chainNetworkId);
         Task LockTuition(List<string> tuitionAddrs);
+        List<Tuition> GetAllTuitionOfLecturer(string lecturerAddress);
     }
 }

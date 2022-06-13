@@ -1,11 +1,8 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.SubjectServices.DTOs;
+﻿using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {

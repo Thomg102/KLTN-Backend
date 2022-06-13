@@ -1,11 +1,8 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.TuitionServices.DTOs;
+﻿using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 namespace KLTN.WebAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -18,6 +15,13 @@ namespace KLTN.WebAPI.Controllers
         {
             _logger = logger;
             _tuitionService = tuitionService;
+        }
+
+        [HttpGet("lecturer/{lecturerAddress}")]
+        public JsonResult GetAllTuitionOfLecturer(string lecturerAddress)
+        {
+            var result = _tuitionService.GetAllTuitionOfLecturer(lecturerAddress);
+            return new JsonResult(new SuccessResponseModel(result));
         }
 
         [HttpGet("{tuitionAddress}")]

@@ -61,9 +61,10 @@ namespace KLTN.Core.TuitionServices.Implementations
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in tuition.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             result.IsJoined = true;
+                            result.IsCompleted = joinedStudentList.IsCompleted;
                             break;
                         }
                 return result;
@@ -83,11 +84,6 @@ namespace KLTN.Core.TuitionServices.Implementations
             {
                 var result = new List<StudentTuitionResponseDTO>();
                 var joinedTuitions = _tuition.Find<Tuition>(_ => true).ToList();
-                if (studentAddress != null)
-                {
-                    var studentSchoolYear = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().SchoolYear;
-                    joinedTuitions = _tuition.Find<Tuition>(x => x.SchoolYear == studentSchoolYear).ToList();
-                }
                 foreach (var joinedTuition in joinedTuitions)
                 {
                     if (studentAddress != null)
@@ -106,7 +102,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                                     TokenAmount = joinedTuition.TokenAmount,
                                     JoinedStudentList = joinedTuition.JoinedStudentList,
                                     IsJoined = true,
-                                    IsCompleted = true,
+                                    IsCompleted = joinedStudentList.IsCompleted,
                                     ChainNetworkId = joinedTuition.ChainNetworkId,
                                     CurrencyAmount = joinedTuition.CurrencyAmount,
                                     ImgURL = joinedTuition.ImgURL,
@@ -131,8 +127,6 @@ namespace KLTN.Core.TuitionServices.Implementations
                             JoinedStudentAmount = joinedTuition.JoinedStudentAmount,
                             TokenAmount = joinedTuition.TokenAmount,
                             JoinedStudentList = joinedTuition.JoinedStudentList,
-                            IsJoined = false,
-                            IsCompleted = false,
                             ChainNetworkId = joinedTuition.ChainNetworkId,
                             CurrencyAmount = joinedTuition.CurrencyAmount,
                             ImgURL = joinedTuition.ImgURL,
@@ -141,7 +135,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                             SchoolYear = joinedTuition.SchoolYear,
                             TuitionAddress = joinedTuition.TuitionAddress,
                             TuitionHashIPFS = joinedTuition.TuitionHashIPFS,
-                            TuitionId = joinedTuition.TuitionId
+                            TuitionId = joinedTuition.TuitionId,
                         });
                     break;
                 }
@@ -150,6 +144,27 @@ namespace KLTN.Core.TuitionServices.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetAllTuition");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        //Get all subject of Lecturer
+        public List<Tuition> GetAllTuitionOfLecturer(string lecturerAddress)
+        {
+            try
+            {
+                var result = new List<Tuition>();
+                var joinedSubjects = _tuition.Find<Tuition>(_ => true).ToList();
+                foreach (var joinedSubject in joinedSubjects)
+                {
+                    if (joinedSubject.LecturerInCharge.ToLower() == lecturerAddress.ToLower())
+                        result.Add(joinedSubject);
+                }
+                return result.OrderByDescending(x => x.StartTime).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetAllSubjectOfLecturer");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
