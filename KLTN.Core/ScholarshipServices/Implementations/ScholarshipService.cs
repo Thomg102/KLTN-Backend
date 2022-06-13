@@ -48,6 +48,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                     ScholarshipName = scholarship.ScholarshipName,
                     ScholarshipStatus = scholarship.ScholarshipStatus,
                     StartTime = scholarship.StartTime,
+                    EndTimeToComFirm = scholarship.EndTimeToComFirm,
+                    EndTimeToResigter = scholarship.EndTimeToResigter,
                     EndTime = scholarship.EndTime,
                     JoinedStudentAmount = scholarship.JoinedStudentAmount,
                     LecturerName = scholarship.LecturerName,
@@ -102,6 +104,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                                     StartTime = joinedScholarship.StartTime,
                                     ChainNetworkId = joinedScholarship.ChainNetworkId,
                                     EndTime = joinedScholarship.EndTime,
+                                    EndTimeToComFirm = joinedScholarship.EndTimeToComFirm,
+                                    EndTimeToResigter = joinedScholarship.EndTimeToResigter,
                                     JoinedStudentList = joinedScholarship.JoinedStudentList,
                                     LecturerInCharge = joinedScholarship.LecturerInCharge,
                                     LecturerName = joinedScholarship.LecturerName,
@@ -126,6 +130,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                             StartTime = joinedScholarship.StartTime,
                             ChainNetworkId = joinedScholarship.ChainNetworkId,
                             EndTime = joinedScholarship.EndTime,
+                            EndTimeToComFirm = joinedScholarship.EndTimeToComFirm,
+                            EndTimeToResigter = joinedScholarship.EndTimeToResigter,
                             JoinedStudentList = joinedScholarship.JoinedStudentList,
                             LecturerInCharge = joinedScholarship.LecturerInCharge,
                             LecturerName = joinedScholarship.LecturerName,
@@ -164,6 +170,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                             StartTime = joinedScholarship.StartTime,
                             ChainNetworkId = joinedScholarship.ChainNetworkId,
                             EndTime = joinedScholarship.EndTime,
+                            EndTimeToComFirm = joinedScholarship.EndTimeToComFirm,
+                            EndTimeToResigter = joinedScholarship.EndTimeToResigter,
                             JoinedStudentList = joinedScholarship.JoinedStudentList,
                             LecturerInCharge = joinedScholarship.LecturerInCharge,
                             LecturerName = joinedScholarship.LecturerName,
@@ -197,6 +205,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                     ScholarshipHashIPFS = scholarship.ScholarshipHashIPFS,
                     ScholarShipDescription = scholarship.ScholarShipDescription,
                     StartTime = scholarship.StartTime,
+                    EndTimeToResigter = scholarship.EndTimeToResigter,
+                    EndTimeToComFirm = scholarship.EndTimeToComFirm,
                     EndTime = scholarship.EndTime,
                     LecturerInCharge = scholarship.LecturerInCharge,
                     LecturerName = scholarship.LecturerName,
@@ -221,68 +231,109 @@ namespace KLTN.Core.ScholarshipServices.Implementations
             return scholarshipList;
         }
 
-        public async Task AddStudentToScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
+        public async Task UpdateStudentRegister(string scholarshipAddress, int chainNetworkId, string studentAddress)
         {
             try
             {
-                foreach (var studentAddress in studentAddressList)
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Scholarship>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
                 {
-                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
-                    if (student != null)
-                    {
-                        var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                        var update = Builders<Scholarship>.Update.Push(x => x.JoinedStudentList, new JoinedStudentDTO()
-                        {
-                            StudentAddress = studentAddress.ToLower(),
-                            StudentId = student.StudentId,
-                            StudentName = student.StudentName,
-                            IsCompleted = false,
-                        });
-                        await _scholarship.UpdateOneAsync(filter, update);
-                    }
-                }
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
 
-                var scholarship = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var filterJoinedStudentAmount = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount + 1);
-                await _scholarship.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
+                await _scholarship.UpdateOneAsync(filter, update);
+
+                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount + 1);
+                await _scholarship.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in AddStudentToScholarship");
+                _logger.LogError(ex, "Error in UpdateStudentRegister");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
 
-        public async Task RemoveStudentFromScholarship(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
+        public async Task UpdateStudentCancelRegister(string scholarshipAddress, int chainNetworkId, string studentAddress)
         {
             try
             {
-                foreach (var studentAddress in studentAddressList)
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
+                var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var update = Builders<Scholarship>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
                 {
-                    var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault();
-                    if (student != null)
-                    {
-                        var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                        var update = Builders<Scholarship>.Update.Pull(x => x.JoinedStudentList, new JoinedStudentDTO()
-                        {
-                            StudentAddress = studentAddress.ToLower(),
-                            StudentId = student.StudentId,
-                            StudentName = student.StudentName,
-                            IsCompleted = false,
-                        });
-                        await _scholarship.UpdateOneAsync(filter, update);
-                    }
-                }
+                    StudentAddress = studentAddress.ToLower(),
+                    StudentId = student.StudentId,
+                    StudentName = student.StudentName,
+                    IsCompleted = false,
+                });
+                await _scholarship.UpdateOneAsync(filter, update);
 
-                var scholarship = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var filterJoinedStudentAmount = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount - 1);
-                await _scholarship.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
+                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Scholarship>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentAmount - 1);
+                await _scholarship.UpdateOneAsync(filter, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in RemoveStudentFromScholarship");
+                _logger.LogError(ex, "Error in UpdateStudentCancelRegister");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task UpdateLecturerConfirmComplete(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
+        {
+            try
+            {
+                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Scholarship>.Filter.Where(x =>
+                    x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower()
+                    && x.ChainNetworkId == chainNetworkId
+                );
+                foreach (var joinedStudentList in mission.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
+                        {
+
+                            int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Scholarship>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
+
+                            await _scholarship.UpdateOneAsync(filter, update);
+                            break;
+                        }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerConfirmComplete");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public async Task UpdateLecturerUnConfirmComplete(string scholarshipAddress, int chainNetworkId, List<string> studentAddressList)
+        {
+            try
+            {
+                var mission = _scholarship.Find<Scholarship>(x => x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var filter = Builders<Scholarship>.Filter.Where(x =>
+                                x.ScholarshipAddress.ToLower() == scholarshipAddress.ToLower()
+                                && x.ChainNetworkId == chainNetworkId
+                            );
+                foreach (var joinedStudentList in mission.JoinedStudentList)
+                    foreach (var studentAddress in studentAddressList)
+                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        {
+                            var update = Builders<Scholarship>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
+
+                            await _scholarship.UpdateOneAsync(filter, update);
+                            break;
+                        }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in UpdateLecturerUnConfirmComplete");
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }

@@ -12,6 +12,7 @@ namespace KLTN.Common.Models.AppSettingModels
         public int ChainNetworkId { get; set; }
         public string MarketplaceContractAddress { get; set; }
         public string ActivateNFTContractAddress { get; set; }
+        public MailSettings MailSettings { get; set; }
         /*  public string PrivateKey { get; set; }*/
         public static void SetValue(ListenMarketplaceAppSetting configuration)
         {

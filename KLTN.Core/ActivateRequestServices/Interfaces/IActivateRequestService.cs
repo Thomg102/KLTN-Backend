@@ -13,5 +13,6 @@ namespace KLTN.Core.RequestActivateServices.Interfaces
         Task CreateNewActivateRequest(RequestActivateDTO product);
         Task CancelActivateRequest(List<long> requestIds);
         Task ActivateRequest(ActivateRequestDTO request);
+        Task SendMail(MailContent mailContent);
     }
 }

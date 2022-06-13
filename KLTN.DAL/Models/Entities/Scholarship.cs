@@ -22,6 +22,8 @@ namespace KLTN.DAL.Models.Entities
         public string ScholarShipDescription { get; set; }
         public long StartTime { get; set; }
         public long EndTime { get; set; }
+        public long EndTimeToResigter { get; set; }
+        public long EndTimeToComFirm { get; set; }
         public string LecturerInCharge { get; set; }
         public string LecturerName { get; set; }
         public long TokenAmount { get; set; }

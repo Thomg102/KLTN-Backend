@@ -200,10 +200,11 @@ namespace KLTN.ManagerPoolListen
                                      ScholarshipHashIPFS = decoded.Event.UrlMetadata,
                                      StartTime = metadata.StartTime,
                                      EndTime = metadata.EndTime,
+                                     EndTimeToResigter = metadata.EndTimeToRegister,
+                                     EndTimeToComFirm = metadata.EndTimeToConfirm,
                                      TokenAmount = long.Parse(metadata.Award),
                                      LecturerInCharge = metadata.LecturerInCharge,
                                      LecturerName = metadata.LecturerName,
-
                                  });
                              }
                              _logger.LogInformation($"Stored New Scholarship {decoded.Event.ContractAddress}");
@@ -1006,52 +1007,96 @@ namespace KLTN.ManagerPoolListen
                 //subcribedContracts.Add(contractAddress);
                 //await _subcribedContractsListenEvent.InsertOneAsync(new SubcribedContractsListenEvent() { SubcribedContracts = contractAddress });
 
-                var subScriptionAddStudentToScholarship = new EthLogsObservableSubscription(client);
-                var subscriptionRemoveStudentFromScholarship = new EthLogsObservableSubscription(client);
+                var subScriptionRegister = new EthLogsObservableSubscription(client);
+                var subscriptionCancelRegister = new EthLogsObservableSubscription(client);
+                var subscriptionConfirm = new EthLogsObservableSubscription(client);
+                var subscriptionUnConfirm = new EthLogsObservableSubscription(client);
                 var subscriptionClose = new EthLogsObservableSubscription(client);
 
-                subScriptionAddStudentToScholarship.GetSubscriptionDataResponsesAsObservable().
+                subScriptionRegister.GetSubscriptionDataResponsesAsObservable().
                      Subscribe(async log =>
                      {
                          try
                          {
-                             _logger.LogInformation("Catched the Add Student To Scholarship Event: " + contractAddress);
-                             EventLog<AddStudentToScholarshipEventDTO> decoded = Event<AddStudentToScholarshipEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation("Catch the Register Scholarship Event: " + contractAddress);
+                             EventLog<RegisterEventDTO> decoded = Event<RegisterEventDTO>.DecodeEvent(log);
 
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new AddStudentToScholarship().DecodeTransaction(myFunctionTxn);
-                                 await scopedProcessingService.AddStudentToScholarship(contractAddress, chainNetworkId, inputData.StudentList);
-                                 _logger.LogInformation("Store Add Student To Scholarship Event successfully with Contract: " + contractAddress);
+                                 await scopedProcessingService.UpdateStudentRegister(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
+                                 _logger.LogInformation("Store Register Scholarship successfully with Contract: " + contractAddress);
                              }
                          }
                          catch (Exception ex)
                          {
-                             _logger.LogError(ex, $"Fail in Store Add Student To Scholarship Event: " + contractAddress);
+                             _logger.LogError(ex, $"Fail in Store Register Scholarship: " + contractAddress);
                          }
                      });
 
-                subscriptionRemoveStudentFromScholarship.GetSubscriptionDataResponsesAsObservable().
+                subscriptionCancelRegister.GetSubscriptionDataResponsesAsObservable().
                      Subscribe(async log =>
                      {
                          try
                          {
-                             _logger.LogInformation("Catch Remove Student From Scholarship Event: " + contractAddress);
-                             EventLog<RemoveStudentFromScholarshipEventDTO> decoded = Event<RemoveStudentFromScholarshipEventDTO>.DecodeEvent(log);
+                             _logger.LogInformation("Catch Cancel Register Scholarship Event: " + contractAddress);
+                             EventLog<CancelRegisterEventDTO> decoded = Event<CancelRegisterEventDTO>.DecodeEvent(log);
                              using (var scope = _services.CreateScope())
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
-                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new RemoveStudentFromScholarship().DecodeTransaction(myFunctionTxn);
-                                 await scopedProcessingService.RemoveStudentFromScholarship(contractAddress, chainNetworkId, inputData.StudentList);
-                                 _logger.LogInformation("Store Remove Student From Scholarship Event successfully with Contract: " + contractAddress);
+                                 await scopedProcessingService.UpdateStudentCancelRegister(contractAddress, chainNetworkId, decoded.Event.StudentAddr);
+                                 _logger.LogInformation("Store Cancel Register Scholarship Event successfully with Contract: " + contractAddress);
                              }
                          }
                          catch (Exception ex)
                          {
-                             _logger.LogError(ex, $"Fail in Remove Student From Scholarship Event: " + contractAddress);
+                             _logger.LogError(ex, $"Fail in Cancel Register Scholarship Event: " + contractAddress);
+                         }
+                     });
+
+                subscriptionConfirm.GetSubscriptionDataResponsesAsObservable().
+                     Subscribe(async log =>
+                     {
+                         try
+                         {
+                             _logger.LogInformation("Catch Confirm Scholarship Event: " + contractAddress);
+                             EventLog<ConfirmEventDTO> decoded = Event<ConfirmEventDTO>.DecodeEvent(log);
+
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList);
+                                 _logger.LogInformation("Store Confirm Mission Event successfully with Scholarship Contract: " + contractAddress);
+                             }
+                         }
+                         catch (Exception ex)
+                         {
+                             _logger.LogError(ex, $"Fail in Stored Confirm Scholarship: " + contractAddress);
+                         }
+                     });
+
+                subscriptionUnConfirm.GetSubscriptionDataResponsesAsObservable().
+                     Subscribe(async log =>
+                     {
+                         try
+                         {
+                             _logger.LogInformation("Catch Unconfirm Scholarship Event: " + contractAddress);
+                             EventLog<UnConfirmEventDTO> decoded = Event<UnConfirmEventDTO>.DecodeEvent(log);
+
+                             using (var scope = _services.CreateScope())
+                             {
+                                 var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
+                                 var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
+                                 var inputData = new UnConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerUnConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList);
+                                 _logger.LogInformation("Store Unconfirm Scholarship successfully with Contract: " + contractAddress);
+                             }
+                         }
+                         catch (Exception ex)
+                         {
+                             _logger.LogError(ex, $"Fail in Stored Unconfirm Scholarship: " + contractAddress);
                          }
                      });
 
@@ -1068,8 +1113,10 @@ namespace KLTN.ManagerPoolListen
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
                                  await scopedProcessingService.CloseScholarship(contractAddress, chainNetworkId);
                                  _logger.LogInformation("Close Subject successfully with Contract: " + contractAddress);
-                                 await subScriptionAddStudentToScholarship.UnsubscribeAsync();
-                                 await subscriptionRemoveStudentFromScholarship.UnsubscribeAsync();
+                                 await subScriptionRegister.UnsubscribeAsync();
+                                 await subscriptionCancelRegister.UnsubscribeAsync();
+                                 await subscriptionConfirm.UnsubscribeAsync();
+                                 await subscriptionUnConfirm.UnsubscribeAsync();
                                  await subscriptionClose.UnsubscribeAsync();
 
                                  subcribedContracts.Remove(contractAddress);
@@ -1083,21 +1130,28 @@ namespace KLTN.ManagerPoolListen
                          }
                      });
 
-                subScriptionAddStudentToScholarship.GetSubscribeResponseAsObservable()
-                    .Subscribe(id => _logger.LogInformation($"Subscribed event Add Student To Scholarship with Contract: {contractAddress}"));
-                subscriptionRemoveStudentFromScholarship.GetSubscribeResponseAsObservable()
-                    .Subscribe(id => _logger.LogInformation($"Subscribed event Remove Student To Scholarship with Contract: {contractAddress}"));
+                subScriptionRegister.GetSubscribeResponseAsObservable()
+                    .Subscribe(id => _logger.LogInformation($"Subscribed event Register Scholarship with Contract: {contractAddress}"));
+                subscriptionCancelRegister.GetSubscribeResponseAsObservable()
+                    .Subscribe(id => _logger.LogInformation($"Subscribed event Cancel Register Scholarship with Contract: {contractAddress}"));
+                subscriptionConfirm.GetSubscribeResponseAsObservable()
+                    .Subscribe(id => _logger.LogInformation($"Subscribed event Confirm Scholarship with Contract: {contractAddress}"));
+                subscriptionUnConfirm.GetSubscribeResponseAsObservable()
+                    .Subscribe(id => _logger.LogInformation($"Subscribed event Unconfirm Scholarship with Contract: {contractAddress}"));
                 subscriptionClose.GetSubscribeResponseAsObservable()
                     .Subscribe(id => _logger.LogInformation($"Subscribed event Close Scholarship with Contract: {contractAddress}"));
 
-                var filterRegister = _web3.Eth.GetEvent<AddStudentToScholarshipEventDTO>(contractAddress).CreateFilterInput();
-                var filterCancelRegister = _web3.Eth.GetEvent<RemoveStudentFromScholarshipEventDTO>(contractAddress).CreateFilterInput();
+                var filterRegister = _web3.Eth.GetEvent<RegisterEventDTO>(contractAddress).CreateFilterInput();
+                var filterCancelRegister = _web3.Eth.GetEvent<CancelRegisterEventDTO>(contractAddress).CreateFilterInput();
+                var filterConfirm = _web3.Eth.GetEvent<ConfirmEventDTO>(contractAddress).CreateFilterInput();
+                var filterUnConfirm = _web3.Eth.GetEvent<UnConfirmEventDTO>(contractAddress).CreateFilterInput();
                 var filterClose = _web3.Eth.GetEvent<CloseEventDTO>(contractAddress).CreateFilterInput();
 
-                await subScriptionAddStudentToScholarship.SubscribeAsync(filterRegister);
-                await subscriptionRemoveStudentFromScholarship.SubscribeAsync(filterCancelRegister);
+                await subScriptionRegister.SubscribeAsync(filterRegister);
+                await subscriptionCancelRegister.SubscribeAsync(filterCancelRegister);
+                await subscriptionConfirm.SubscribeAsync(filterConfirm);
+                await subscriptionUnConfirm.SubscribeAsync(filterUnConfirm);
                 await subscriptionClose.SubscribeAsync(filterClose);
-
             }
             catch (Exception ex)
             {

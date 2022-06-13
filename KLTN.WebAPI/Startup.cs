@@ -65,6 +65,10 @@ namespace KLTN.WebAPI
                 options.DatabaseName = configurationSetting.DatabaseName;
             });
 
+            services.AddOptions();                       
+            var mailsettings = Configuration.GetSection("MailSettings");
+            services.Configure<MailSettings>(mailsettings);
+
             services.AddScoped<IMongoDbContext, MongoDbContext>();
             services.AddScoped<ITuitionService, TuitionService>();
             services.AddScoped<ISubjectService, SubjectService>();
