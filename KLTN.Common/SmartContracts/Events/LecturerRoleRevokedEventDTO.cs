@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KLTN.Common.SmartContracts.Events
 {
-    [Event("StudentRoleRevoked")]
+    [Event("LecturerRoleRevoked")]
     public class LecturerRoleRevokedEventDTO : IEventDTO
     {
         [Parameter("address[]", "lecturerAddrs", 1, false)]
