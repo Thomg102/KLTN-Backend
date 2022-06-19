@@ -360,8 +360,11 @@ namespace KLTN.Core.ScholarshipServices.Implementations
         {
             try
             {
-                var filter = Builders<Scholarship>.Filter.In(x => x.ScholarshipAddress.ToLower(), scholarshipAddrs.ConvertAll(d => d.ToLower()));
-                await _scholarship.DeleteManyAsync(filter);
+                foreach (var scholarshipAddr in scholarshipAddrs)
+                {
+                    var filter = Builders<Scholarship>.Filter.Where(x => x.ScholarshipAddress.ToLower() == scholarshipAddr.ToLower());
+                    await _scholarship.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {

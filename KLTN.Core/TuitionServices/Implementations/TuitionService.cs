@@ -325,8 +325,11 @@ namespace KLTN.Core.TuitionServices.Implementations
         {
             try
             {
-                var filter = Builders<Tuition>.Filter.In(x => x.TuitionAddress.ToLower(), tuitionAddrs.ConvertAll(d => d.ToLower()));
-                await _tuition.DeleteManyAsync(filter);
+                foreach (var tuitionAddr in tuitionAddrs)
+                {
+                    var filter = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionAddr.ToLower());
+                    await _tuition.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {

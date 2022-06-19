@@ -369,8 +369,11 @@ namespace KLTN.Core.SubjectServices.Implementations
         {
             try
             {
-                var filter = Builders<Subject>.Filter.In(x => x.SubjectAddress.ToLower(), subjectAddrs.ConvertAll(d => d.ToLower()));
-                await _subject.DeleteManyAsync(filter);
+                foreach (var subjectAddr in subjectAddrs)
+                {
+                    var filter = Builders<Subject>.Filter.Where(x => x.SubjectAddress.ToLower() == subjectAddr.ToLower());
+                    await _subject.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {

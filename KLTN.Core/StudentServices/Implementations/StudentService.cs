@@ -297,8 +297,11 @@ namespace KLTN.Core.StudentServices.Implementations
         {
             try
             {
-                var filter = Builders<Student>.Filter.In(x => x.StudentAddress.ToLower(), studentAddrs.ConvertAll(d => d.ToLower()));
-                await _student.DeleteManyAsync(filter);
+                foreach (var studentAddr in studentAddrs)
+                {
+                    var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == studentAddr.ToLower());
+                    await _student.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {

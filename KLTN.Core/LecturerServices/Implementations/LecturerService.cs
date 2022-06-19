@@ -110,8 +110,11 @@ namespace KLTN.Core.LecturerServicess.Implementations
         {
             try
             {
-                var filter = Builders<Lecturer>.Filter.In(x => x.LecturerAddress.ToLower(), lecturerAddrs.ConvertAll(d => d.ToLower()));
-                await _lecturer.DeleteManyAsync(filter);
+                foreach (var lecturerAddr in lecturerAddrs)
+                {
+                    var filter = Builders<Lecturer>.Filter.Where(x => x.LecturerAddress.ToLower() == lecturerAddr.ToLower());
+                    await _lecturer.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {

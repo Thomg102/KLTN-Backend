@@ -3,6 +3,7 @@ using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using WebAPI.Models;
 using WebAPI.Utils.Constants;
@@ -39,6 +40,13 @@ namespace KLTN.WebAPI.Controllers
         public JsonResult CreateNewLecturer([FromBody] LecturerDTO lecturer)
         {
             _lecturerService.CreateNewLectuter(lecturer);
+            return new JsonResult(new SuccessResponseModel());
+        }
+
+        [HttpPost("revoke")]
+        public JsonResult RevokeLecturerRole([FromBody] List<string> lecturerAddrs)
+        {
+            _lecturerService.RevokeLecturerRole(lecturerAddrs);
             return new JsonResult(new SuccessResponseModel());
         }
     }

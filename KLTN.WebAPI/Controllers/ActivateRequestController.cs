@@ -52,12 +52,5 @@ namespace KLTN.WebAPI.Controllers
             _activateRequestService.SendMail(mailContent);
             return new JsonResult(new SuccessResponseModel());
         }
-
-        [HttpPost("Mail/{studentId}/{nameProduct}/{codeActivate}")]
-        public JsonResult Mail(string studentId, string nameProduct, string codeActivate)
-        {
-            _activateRequestService.Mail(studentId, nameProduct, codeActivate);
-            return new JsonResult(new SuccessResponseModel());
-        }
     }
 }

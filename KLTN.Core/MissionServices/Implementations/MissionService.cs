@@ -396,8 +396,11 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             try
             {
-                var filter = Builders<Mission>.Filter.In(x => x.MissionAddress.ToLower(), missionAddrs.ConvertAll(d => d.ToLower()));
-                await _mission.DeleteManyAsync(filter);
+                foreach (var missionAddr in missionAddrs)
+                {
+                    var filter = Builders<Mission>.Filter.Where(x => x.MissionAddress.ToLower() == missionAddr.ToLower());
+                    await _mission.DeleteOneAsync(filter);
+                }
             }
             catch (Exception ex)
             {
