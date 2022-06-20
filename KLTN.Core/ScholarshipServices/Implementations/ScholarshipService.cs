@@ -61,7 +61,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in scholarship.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             result.IsJoined = true;
                             break;
@@ -323,7 +323,7 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                             );
                 foreach (var joinedStudentList in mission.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             var update = Builders<Scholarship>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 

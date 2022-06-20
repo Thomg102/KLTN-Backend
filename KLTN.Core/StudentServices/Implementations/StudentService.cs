@@ -1,6 +1,4 @@
-﻿using KLTN.Common.Enums;
-using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
+﻿using KLTN.Common.Exceptions;
 using KLTN.Core.StudentServices.DTOs;
 using KLTN.Core.StudentServices.Interfaces;
 using KLTN.DAL;
@@ -8,13 +6,11 @@ using KLTN.DAL.Models;
 using KLTN.DAL.Models.DTOs;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -71,7 +67,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 foreach (var mission in missionList)
                 {
                     foreach (var joinedStudentList in mission.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
@@ -87,7 +83,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 foreach (var tuition in tuitionList)
                 {
                     foreach (var joinedStudentList in tuition.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
@@ -103,7 +99,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 foreach (var scholarship in scholarshipList)
                 {
                     foreach (var joinedStudentList in scholarship.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
                         {
                             result.Add(new BalanceHistoriesResponseDTO()
                             {
@@ -139,7 +135,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 foreach (var subject in subjectList)
                 {
                     foreach (var joinedStudentList in subject.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
                         {
                             result.Add(new StudentCertificateDTO()
                             {
@@ -174,7 +170,7 @@ namespace KLTN.Core.StudentServices.Implementations
                 foreach (var mission in missionList)
                 {
                     foreach (var joinedStudentList in mission.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && joinedStudentList.IsCompleted)
                         {
                             result.Add(new StudentCertificateDTO()
                             {

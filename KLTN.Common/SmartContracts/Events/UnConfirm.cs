@@ -5,10 +5,10 @@ namespace KLTN.Common.SmartContracts.Events
     [Event("UnConfirm")]
     public class UnConfirmEventDTO : IEventDTO
     {
-        [Parameter("address", "studentsAmount", 1, false)]
-        public string StudentAddr { get; set; }
+        [Parameter("uint256", "studentsAmount", 1, false)]
+        public int StudentAddr { get; set; }
 
         [Parameter("uint256", "timestamp", 2, false)]
-        public string Timestamp { get; set; }
+        public long Timestamp { get; set; }
     }
 }

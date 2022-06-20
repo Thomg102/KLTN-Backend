@@ -332,7 +332,7 @@ namespace KLTN.Core.SubjectServices.Implementations
                             );
                 foreach (var joinedStudentList in Subject.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 

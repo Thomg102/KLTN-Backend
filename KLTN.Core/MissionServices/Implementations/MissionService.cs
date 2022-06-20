@@ -1,22 +1,19 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
+﻿using KLTN.Common.Enums;
+using KLTN.Common.Exceptions;
 using KLTN.Core.MissionServices.DTOs;
 using KLTN.Core.MissionServices.Interfaces;
+using KLTN.DAL;
 using KLTN.DAL.Models;
+using KLTN.DAL.Models.DTOs;
+using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
-using KLTN.DAL.Models.DTOs;
-using KLTN.Common.Enums;
-using KLTN.DAL;
-using KLTN.DAL.Models.Entities;
 
 namespace KLTN.Core.MissionServices.Implementations
 {
@@ -68,7 +65,7 @@ namespace KLTN.Core.MissionServices.Implementations
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in mission.JoinedStudentList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             result.IsJoined = true;
                             break;
@@ -332,14 +329,14 @@ namespace KLTN.Core.MissionServices.Implementations
                 foreach (var joinedStudentList in mission.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
                         if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
-                            {
+                        {
 
-                                int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
-                                var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
+                            int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
 
-                                await _mission.UpdateOneAsync(filter, update);
-                                break;
-                            }
+                            await _mission.UpdateOneAsync(filter, update);
+                            break;
+                        }
             }
             catch (Exception ex)
             {
@@ -359,7 +356,7 @@ namespace KLTN.Core.MissionServices.Implementations
                             );
                 foreach (var joinedStudentList in mission.JoinedStudentList)
                     foreach (var studentAddress in studentAddressList)
-                        if (joinedStudentList.StudentName.ToLower() == studentAddress.ToLower())
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
                             var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
 
