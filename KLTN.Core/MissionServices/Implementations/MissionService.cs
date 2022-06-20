@@ -358,7 +358,8 @@ namespace KLTN.Core.MissionServices.Implementations
                     foreach (var studentAddress in studentAddressList)
                         if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
-                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
+                            int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Mission>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, false);
 
                             await _mission.UpdateOneAsync(filter, update);
                             break;

@@ -334,7 +334,8 @@ namespace KLTN.Core.SubjectServices.Implementations
                     foreach (var studentAddress in studentAddressList)
                         if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
-                            var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
+                            int index = (Subject.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, false);
 
                             await _subject.UpdateOneAsync(filter, update);
                             break;

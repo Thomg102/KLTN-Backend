@@ -325,7 +325,8 @@ namespace KLTN.Core.ScholarshipServices.Implementations
                     foreach (var studentAddress in studentAddressList)
                         if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
                         {
-                            var update = Builders<Scholarship>.Update.Set(x => x.JoinedStudentList.Where(y => y.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().IsCompleted, false);
+                            int index = (mission.JoinedStudentList).IndexOf(joinedStudentList);
+                            var update = Builders<Scholarship>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, false);
 
                             await _scholarship.UpdateOneAsync(filter, update);
                             break;
