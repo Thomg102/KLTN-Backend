@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace KLTN.Core.ScholarshipServices.DTOs
+﻿namespace KLTN.Core.ScholarshipServices.DTOs
 {
     public class ScholarshipDTO
     {
@@ -19,6 +15,6 @@ namespace KLTN.Core.ScholarshipServices.DTOs
         public long EndTimeToComFirm { get; set; }
         public string LecturerInCharge { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
+        public decimal TokenAmount { get; set; }
     }
 }

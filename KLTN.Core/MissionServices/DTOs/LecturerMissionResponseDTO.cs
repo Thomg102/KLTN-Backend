@@ -1,7 +1,5 @@
 ﻿using KLTN.DAL.Models.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.Core.MissionServices.DTOs
 {
@@ -24,7 +22,7 @@ namespace KLTN.Core.MissionServices.DTOs
         public int MaxStudentAmount { get; set; }
         public int JoinedStudentAmount { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
+        public decimal TokenAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
     }
 }

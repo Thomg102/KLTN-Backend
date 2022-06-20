@@ -1,10 +1,7 @@
-﻿using KLTN.Common.Enums;
-using KLTN.DAL.Models.DTOs;
+﻿using KLTN.DAL.Models.DTOs;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.DAL.Models
 {
@@ -30,7 +27,7 @@ namespace KLTN.DAL.Models
         public int MaxStudentAmount { get; set; }
         public string LecturerAddress { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
+        public decimal TokenAmount { get; set; }
         public int JoinedStudentAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
     }

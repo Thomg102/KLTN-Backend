@@ -10,7 +10,6 @@ using KLTN.Core.StudentServices.Interfaces;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.Core.TuitionServices.DTOs;
 using KLTN.Core.TuitionServices.Interfaces;
-using KLTN.DAL;
 using KLTN.ManagerPoolListen.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,7 +32,7 @@ namespace KLTN.ManagerPoolListen
 {
     public class Worker : BackgroundService
     {
-        private readonly IMongoDbContext _context;
+        //private readonly IMongoDbContext _context;
         //private readonly IMongoCollection<SubcribedContractsListenEvent> _subcribedContractsListenEvent;
 
         private readonly IServiceScopeFactory _services;
@@ -159,12 +158,12 @@ namespace KLTN.ManagerPoolListen
                                      SchoolYear = DateTime.Now.Year,
                                      StartTime = tuitionMetadata.StartTime,
                                      EndTime = tuitionMetadata.EndTime,
-                                     TokenAmount = long.Parse(tuitionMetadata.AmountToken),
-                                     CurrencyAmount = long.Parse(tuitionMetadata.AmountCurency),
+                                     TokenAmount = decimal.Parse(tuitionMetadata.AmountToken),
+                                     CurrencyAmount = decimal.Parse(tuitionMetadata.AmountCurency),
                                      LecturerInCharge = tuitionMetadata.LecturerInCharge,
                                      LecturerName = tuitionMetadata.LecturerName,
                                  });
-                                 FollowTuitionCompetitionAsync(client, decoded.Event.ContractAddress);
+                                 await FollowTuitionCompetitionAsync(client, decoded.Event.ContractAddress);
                              }
                              _logger.LogInformation($"Stored New Tuition {decoded.Event.ContractAddress}");
                          });
@@ -200,11 +199,11 @@ namespace KLTN.ManagerPoolListen
                                      EndTime = metadata.EndTime,
                                      EndTimeToResigter = metadata.EndTimeToRegister,
                                      EndTimeToComFirm = metadata.EndTimeToConfirm,
-                                     TokenAmount = long.Parse(metadata.Award),
+                                     TokenAmount = decimal.Parse(metadata.Award),
                                      LecturerInCharge = metadata.LecturerInCharge,
                                      LecturerName = metadata.LecturerName,
                                  });
-                                 FollowScholarshipCompetitionAsync(client, decoded.Event.ContractAddress);
+                                 await FollowScholarshipCompetitionAsync(client, decoded.Event.ContractAddress);
                              }
                              _logger.LogInformation($"Stored New Scholarship {decoded.Event.ContractAddress}");
                          });
@@ -246,7 +245,7 @@ namespace KLTN.ManagerPoolListen
                                      LecturerAddress = metadata.LecturerInCharge,
                                      LecturerName = metadata.LecturerName,
                                  });
-                                 FollowSubjectCompetitionAsync(client, decoded.Event.ContractAddress);
+                                 await FollowSubjectCompetitionAsync(client, decoded.Event.ContractAddress);
                              }
                              _logger.LogInformation($"Stored New Subject {decoded.Event.ContractAddress}");
                          });
@@ -286,10 +285,10 @@ namespace KLTN.ManagerPoolListen
                                      EndTimeToComFirm = metadata.EndTimeToConfirm,
                                      MaxStudentAmount = int.Parse(metadata.MaxEntrant),
                                      LecturerAddress = metadata.LecturerInCharge,
-                                     TokenAmount = long.Parse(metadata.Award),
+                                     TokenAmount = decimal.Parse(metadata.Award),
                                      LecturerName = metadata.LecturerName,
                                  });
-                                 FollowMissionCompetitionAsync(client, decoded.Event.ContractAddress);
+                                 await FollowMissionCompetitionAsync(client, decoded.Event.ContractAddress);
                              }
                              _logger.LogInformation($"Stored New Mission {decoded.Event.ContractAddress}");
                          });
@@ -560,11 +559,11 @@ namespace KLTN.ManagerPoolListen
                 {
                     repeat = 0;
                     var handler = new EthBlockNumberObservableHandler(client);
-                    handler.GetResponseAsObservable().Subscribe(async (x) =>
+                    handler.GetResponseAsObservable().Subscribe(x =>
                     {
                         Console.WriteLine(x.Value);
                         minute = 0;
-                        await ListenSubcribedContractReadyToCloseAsync();
+                        //await ListenSubcribedContractReadyToCloseAsync();
                     });
                     await handler.SendRequestAsync();
                     //

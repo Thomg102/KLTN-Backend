@@ -1,7 +1,5 @@
 ﻿using KLTN.DAL.Models.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.Core.TuitionServices.DTOs
 {
@@ -18,8 +16,8 @@ namespace KLTN.Core.TuitionServices.DTOs
         public int SchoolYear { get; set; }
         public long StartTime { get; set; }
         public long EndTime { get; set; }
-        public long TokenAmount { get; set; }
-        public long CurrencyAmount { get; set; }
+        public decimal TokenAmount { get; set; }
+        public decimal CurrencyAmount { get; set; }
         public string LecturerInCharge { get; set; }
         public string LecturerName { get; set; }
         public int JoinedStudentAmount { get; set; }

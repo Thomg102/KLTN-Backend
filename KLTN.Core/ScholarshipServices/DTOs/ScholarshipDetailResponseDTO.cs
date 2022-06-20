@@ -19,7 +19,7 @@ namespace KLTN.Core.ScholarshipServices.DTOs
         public long EndTimeToComFirm { get; set; }
         public string LecturerInCharge { get; set; }
         public string LecturerName { get; set; }
-        public long TokenAmount { get; set; }
+        public decimal TokenAmount { get; set; }
         public int JoinedStudentAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
         public bool IsJoined { get; set; }
