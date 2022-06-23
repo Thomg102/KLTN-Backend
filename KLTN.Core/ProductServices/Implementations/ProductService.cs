@@ -10,7 +10,6 @@ using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -144,6 +143,7 @@ namespace KLTN.Core.ProductServices.Implementations
                     productList = _product.Find<ProductOnSale>(_ => true).ToList();
                 else
                     productList = _product.Find<ProductOnSale>(x => x.SaleAddress.ToLower() == walletAddress.ToLower()).ToList();
+
                 if (productList != null && productList.Count > 0)
                 {
                     var listProductOnSaleGroup = productList.GroupBy(x => x.ProductNftId).ToList();
@@ -154,7 +154,7 @@ namespace KLTN.Core.ProductServices.Implementations
                         foreach (var productOnSale in listProductOnSale)
                         {
                             totalAmountOnSale += productOnSale.AmountOnSale;
-                            if (BigInteger.Parse(productOnSale.PriceOfOneItem) < BigInteger.Parse(minPrice))
+                            if (decimal.Parse(productOnSale.PriceOfOneItem) < decimal.Parse(minPrice))
                                 minPrice = productOnSale.PriceOfOneItem;
                         }
                         result.Add(new ProductOnSaleResponseDTO()

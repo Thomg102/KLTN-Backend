@@ -1,7 +1,5 @@
 ﻿using KLTN.Core.MissionServices.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace KLTN.Core.MissionServices.Interfaces
@@ -20,5 +18,6 @@ namespace KLTN.Core.MissionServices.Interfaces
         Task UpdateLecturerUnConfirmComplete(string missionAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseMission(string missionAddress, int chainNetworkId);
         Task LockMission(List<string> missionAddrs);
+        Task<List<string>> GetMissionListReadyToClose(int chainNetworkId);
     }
 }

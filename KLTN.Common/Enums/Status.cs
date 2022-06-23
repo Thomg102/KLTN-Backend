@@ -13,4 +13,11 @@
         Request,
         Activated
     }
+
+    public enum StatusOnContract
+    {
+        Lock,
+        Open,
+        Close
+    }
 }

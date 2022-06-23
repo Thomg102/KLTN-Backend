@@ -17,5 +17,6 @@ namespace KLTN.Core.TuitionServices.Interfaces
         Task CloseTuition(string tuitionAddress, int chainNetworkId);
         Task LockTuition(List<string> tuitionAddrs);
         List<Tuition> GetAllTuitionOfLecturer(string lecturerAddress);
+        Task<List<string>> GetTuitionListReadyToClose(int chainNetworkId);
     }
 }

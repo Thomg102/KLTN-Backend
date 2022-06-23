@@ -3,7 +3,7 @@
     public class ProductUpdateBuyPriceOnSaleDTO
     {
         public long ProductNftId { get; set; }
-        public long PriceOfOneItem { get; set; }
+        public decimal PriceOfOneItem { get; set; }
         public string SaleAddress { get; set; }
     }
 }

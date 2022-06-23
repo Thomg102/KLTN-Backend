@@ -1,3 +1,4 @@
+using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
 using KLTN.Common.Models;
 using KLTN.Common.SmartContracts.Events;
@@ -559,11 +560,11 @@ namespace KLTN.ManagerPoolListen
                 {
                     repeat = 0;
                     var handler = new EthBlockNumberObservableHandler(client);
-                    handler.GetResponseAsObservable().Subscribe(x =>
+                    handler.GetResponseAsObservable().Subscribe(async (x) =>
                     {
                         Console.WriteLine(x.Value);
                         minute = 0;
-                        //await ListenSubcribedContractReadyToCloseAsync();
+                        await ListenSubcribedContractReadyToCloseAsync();
                     });
                     await handler.SendRequestAsync();
                     //
@@ -576,6 +577,114 @@ namespace KLTN.ManagerPoolListen
                 }
 
                 await Task.Delay(15000, stoppingToken);
+            }
+        }
+
+        private async Task ListenSubcribedContractReadyToCloseAsync()
+        {
+            try
+            {
+                using (var scope = _services.CreateScope())
+                {
+                    var scholarshipSerivce = scope.ServiceProvider.GetRequiredService<IScholarshipService>();
+                    var tuitionService = scope.ServiceProvider.GetRequiredService<ITuitionService>();
+                    var missionService = scope.ServiceProvider.GetRequiredService<IMissionService>();
+                    var subjectService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
+
+                    var scholarshipList = await scholarshipSerivce.GetScholarshipListReadyToClose(chainNetworkId);
+                    var tuitionList = await tuitionService.GetTuitionListReadyToClose(chainNetworkId);
+                    var missionList = await missionService.GetMissionListReadyToClose(chainNetworkId);
+                    var subjectList = await subjectService.GetSubjectListReadyToClose(chainNetworkId);
+
+                    foreach (var subcribedContract in scholarshipList)
+                    {
+                        var status = await _web3.Eth.GetContractQueryHandler<ContractStatus>()
+                            .QueryAsync<int>(subcribedContract);
+                        if (status == (int)StatusOnContract.Close)
+                        {
+                            await scholarshipSerivce.CloseScholarship(subcribedContract, chainNetworkId);
+                            continue;
+                        }
+                        var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
+                            .QueryAsync<bool>(subcribedContract);
+                        if (isReadyToClose && status != (int)StatusOnContract.Close)
+                        {
+                            var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
+                            var closeSubcribedContract = new Close()
+                            {
+                                Pool = subcribedContract
+                            };
+                            var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
+                        }
+                    }
+                    foreach (var subcribedContract in tuitionList)
+                    {
+                        var status = await _web3.Eth.GetContractQueryHandler<ContractStatus>()
+                            .QueryAsync<int>(subcribedContract);
+                        if (status == (int)StatusOnContract.Close)
+                        {
+                            await tuitionService.CloseTuition(subcribedContract, chainNetworkId);
+                            continue;
+                        }
+                        var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
+                            .QueryAsync<bool>(subcribedContract);
+                        if (isReadyToClose && status != (int)StatusOnContract.Close)
+                        {
+                            var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
+                            var closeSubcribedContract = new Close()
+                            {
+                                Pool = subcribedContract
+                            };
+                            var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
+                        }
+                    }
+                    foreach (var subcribedContract in missionList)
+                    {
+                        var status = await _web3.Eth.GetContractQueryHandler<ContractStatus>()
+                            .QueryAsync<int>(subcribedContract);
+                        if (status == (int)StatusOnContract.Close)
+                        {
+                            await missionService.CloseMission(subcribedContract, chainNetworkId);
+                            continue;
+                        }
+                        var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
+                            .QueryAsync<bool>(subcribedContract);
+                        if (isReadyToClose && status != (int)StatusOnContract.Close)
+                        {
+                            var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
+                            var closeSubcribedContract = new Close()
+                            {
+                                Pool = subcribedContract
+                            };
+                            var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
+                        }
+                    }
+                    foreach (var subcribedContract in subjectList)
+                    {
+                        var status = await _web3.Eth.GetContractQueryHandler<ContractStatus>()
+                            .QueryAsync<int>(subcribedContract);
+                        if (status == (int)StatusOnContract.Close)
+                        {
+                            await subjectService.CloseSubject(subcribedContract, chainNetworkId);
+                            continue;
+                        }
+                        var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
+                            .QueryAsync<bool>(subcribedContract);
+                        if (isReadyToClose && status != (int)StatusOnContract.Close)
+                        {
+                            var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
+                            var closeSubcribedContract = new Close()
+                            {
+                                Pool = subcribedContract
+                            };
+                            var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("UNKNOWN: ", ex);
             }
         }
 
@@ -766,30 +875,7 @@ namespace KLTN.ManagerPoolListen
                 _logger.LogError(ex, "Follow Mission Contract Async exception: ");
             }
         }
-        private async Task ListenSubcribedContractReadyToCloseAsync()
-        {
-            try
-            {
-                foreach (var subcribedContract in subcribedContracts)
-                {
-                    var isReadyToClose = await _web3.Eth.GetContractQueryHandler<IsReadyToClose>()
-                    .QueryAsync<bool>(subcribedContract);
-                    if (isReadyToClose)
-                    {
-                        var closeHandler = _web3.Eth.GetContractTransactionHandler<Close>();
-                        var closeSubcribedContract = new Close()
-                        {
-                            Pool = subcribedContract
-                        };
-                        var transactionReceipt = await closeHandler.SendRequestAndWaitForReceiptAsync(managerPoolAddress, closeSubcribedContract);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("UNKNOWN: ", ex);
-            }
-        }
+
         #endregion
 
         #region SUBJECT

@@ -160,7 +160,17 @@ namespace KLTN.Core.MissionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var missionList = await _mission.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTimeToComFirm > now && x.ChainNetworkId == chainNetworkId)
+                .Where(x => ((x.StartTime <= now && x.EndTimeToComFirm > now) || x.MissionStatus != Status.Closed.ToString()) && x.ChainNetworkId == chainNetworkId)
+                .Select(x => x.MissionAddress)
+                .ToListAsync();
+            return missionList;
+        }
+
+        public async Task<List<string>> GetMissionListReadyToClose(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var missionList = await _mission.AsQueryable()
+                .Where(x => x.EndTimeToComFirm <= now && x.MissionStatus != Status.Closed.ToString() && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.MissionAddress)
                 .ToListAsync();
             return missionList;
