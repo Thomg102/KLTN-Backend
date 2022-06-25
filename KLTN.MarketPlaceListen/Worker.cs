@@ -14,6 +14,7 @@ using Nethereum.JsonRpc.WebSocketStreamingClient;
 using Nethereum.RPC.Eth.DTOs;
 using Nethereum.RPC.Reactive.Eth;
 using Nethereum.RPC.Reactive.Eth.Subscriptions;
+using Nethereum.Web3;
 using Newtonsoft.Json;
 using System;
 using System.Net.Http;
@@ -268,7 +269,7 @@ namespace KLTN.MarketPlaceListen
                         await scopedProcessingService.UpdateBuyPriceProductOnSale(new Core.ProductServices.DTOs.ProductUpdateBuyPriceOnSaleDTO
                         {
                             ProductNftId = decoded.Event.ProductId,
-                            PriceOfOneItem = decoded.Event.PriceOfOneItem,
+                            PriceOfOneItem = Web3.Convert.FromWei(decoded.Event.PriceOfOneItem),
                             SaleAddress = decoded.Event.SaleAddress
                         });
                     }

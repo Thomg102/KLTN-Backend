@@ -1,4 +1,5 @@
 ﻿using Nethereum.ABI.FunctionEncoding.Attributes;
+using System.Numerics;
 
 namespace KLTN.Common.SmartContracts.Events
 {
@@ -9,7 +10,7 @@ namespace KLTN.Common.SmartContracts.Events
         public long ProductId { get; set; }
 
         [Parameter("uint256", "_oneItemPrice", 2, false)]
-        public decimal PriceOfOneItem { get; set; }
+        public BigInteger PriceOfOneItem { get; set; }
 
         [Parameter("address", "ownerOfItem", 3, false)]
         public string SaleAddress { get; set; }
