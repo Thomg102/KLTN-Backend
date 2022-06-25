@@ -247,7 +247,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             ProductHahIPFS = productActivating.ProductHahIPFS,
                             ProductImg = productActivating.ProductImg,
                             ProductName = productActivating.ProductName,
-                            ProductTypeName = productActivating.ProductTypeName
+                            ProductTypeName = productActivating.ProductTypeName,
+                            ProductNftId = productActivating.ProductNftId,
                         });
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                     }

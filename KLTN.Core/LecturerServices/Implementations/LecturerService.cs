@@ -1,17 +1,13 @@
 ﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
 using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.DAL;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -31,12 +27,12 @@ namespace KLTN.Core.LecturerServicess.Implementations
         }
 
         // Get detail info of specific Lecturer
-        public LecturerDetailInfoResponseDTO GetDetailOfLecturer(string lecturerAddress)
+        public Lecturer GetDetailOfLecturer(string lecturerAddress)
         {
             try
             {
                 var lecturerInfo = _lecturer.Find<Lecturer>(x => x.LecturerAddress.ToLower() == lecturerAddress.ToLower()).FirstOrDefault();
-                return JsonConvert.DeserializeObject<LecturerDetailInfoResponseDTO>(JsonConvert.SerializeObject(lecturerInfo));
+                return lecturerInfo;
             }
             catch (Exception ex)
             {
