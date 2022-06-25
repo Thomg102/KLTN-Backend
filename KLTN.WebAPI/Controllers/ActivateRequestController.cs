@@ -46,10 +46,10 @@ namespace KLTN.WebAPI.Controllers
             return new JsonResult(new SuccessResponseModel());
         }
 
-        [HttpPost("SendMail")]
-        public JsonResult SendMail([FromBody] MailContent mailContent)
+        [HttpPost("CreateActivateCode")]
+        public JsonResult CreateActivateCode([FromBody] ActivateCodeRequestDTO request)
         {
-            _activateRequestService.SendMail(mailContent);
+            _activateRequestService.CreateActivateCode(request);
             return new JsonResult(new SuccessResponseModel());
         }
     }

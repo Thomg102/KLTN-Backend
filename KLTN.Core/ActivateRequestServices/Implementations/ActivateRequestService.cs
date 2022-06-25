@@ -301,7 +301,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
             }
         }
 
-        public async Task SendMail(MailContent mailContent)
+        private async Task SendMail(MailContent mailContent)
         {
             var email = new MimeMessage();
             email.Sender = new MailboxAddress(mailSettings.DisplayName, mailSettings.Mail);
@@ -335,6 +335,35 @@ namespace KLTN.Core.RequestActivateServices.Implementations
             smtp.Disconnect(true);
 
             _logger.LogInformation("send mail to " + mailContent.To);
+        }
+
+        public async Task CreateActivateCode(ActivateCodeRequestDTO request)
+        {
+            try
+            {
+                var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeAlias.ToLower() == request.ProductTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
+                if (isIdependentNFT)
+                {
+                    var listCodeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == request.ProductTypeName.ToLower()).ToList().Select(x => x.Code);
+                    foreach (var code in request.ListCode)
+                    {
+                        if (!listCodeActivate.Contains(code))
+                        {
+                            await _codeActivate.InsertOneAsync(new CodeActivateProduct()
+                            {
+                                Code = code,
+                                IsUsed = false,
+                                ProductTypeName = request.ProductTypeName
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CreateActivateCode");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
         }
     }
 }
