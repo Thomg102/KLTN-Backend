@@ -225,7 +225,17 @@ namespace KLTN.Core.ScholarshipServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var scholarshipList = await _scholarship.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetworkId == chainNetworkId)
+                .Where(x => ((x.StartTime <= now && x.EndTime > now) || x.ScholarshipStatus != Status.Closed.ToString()) && x.ChainNetworkId == chainNetworkId)
+                .Select(x => x.ScholarshipAddress)
+                .ToListAsync();
+            return scholarshipList;
+        }
+
+        public async Task<List<string>> GetScholarshipListReadyToClose(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var scholarshipList = await _scholarship.AsQueryable()
+                .Where(x => x.EndTimeToComFirm <= now && x.ScholarshipStatus != Status.Closed.ToString() && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.ScholarshipAddress)
                 .ToListAsync();
             return scholarshipList;

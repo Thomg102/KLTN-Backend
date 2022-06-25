@@ -1,7 +1,5 @@
 ﻿using KLTN.Core.ScholarshipServices.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace KLTN.Core.ScholarshipServices.Interfaces
@@ -20,5 +18,6 @@ namespace KLTN.Core.ScholarshipServices.Interfaces
 
         Task CloseScholarship(string scholarshipAddress, int chainNetworkId);
         Task LockScholarship(List<string> scholarshipAddrs);
+        Task<List<string>> GetScholarshipListReadyToClose(int chainNetworkId);
     }
 }

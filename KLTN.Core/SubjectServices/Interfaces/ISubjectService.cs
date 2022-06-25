@@ -1,7 +1,5 @@
 ﻿using KLTN.Core.SubjectServices.DTOs;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace KLTN.Core.SubjectServices.Interfaces
@@ -19,5 +17,6 @@ namespace KLTN.Core.SubjectServices.Interfaces
         Task UpdateLecturerUnConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddress);
         Task CloseSubject(string subjectAddress, int chainNetworkId);
         Task LockSubject(List<string> subjectAddrs);
+        Task<List<string>> GetSubjectListReadyToClose(int chainNetworkId);
     }
 }

@@ -233,7 +233,18 @@ namespace KLTN.Core.SubjectServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var subjectList = await _subject.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTimeToComFirm > now && x.ChainNetworkId == chainNetworkId)
+                .Where(x => ((x.StartTime <= now && x.EndTimeToComFirm > now) || x.SubjectStatus != Status.Closed.ToString()) && x.ChainNetworkId == chainNetworkId)
+                .Select(x => x.SubjectAddress)
+                .ToListAsync();
+            return subjectList;
+        }
+
+
+        public async Task<List<string>> GetSubjectListReadyToClose(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var subjectList = await _subject.AsQueryable()
+                .Where(x => x.EndTimeToComFirm <= now && x.SubjectStatus != Status.Closed.ToString() && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.SubjectAddress)
                 .ToListAsync();
             return subjectList;

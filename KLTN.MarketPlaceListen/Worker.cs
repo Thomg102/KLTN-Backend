@@ -62,8 +62,6 @@ namespace KLTN.MarketPlaceListen
                     await ListenCancelRequestActivateNFT(client);
                     await ActivateRequestNFT(client);
 
-
-
                     await PingAliveWS(client, stoppingToken);
                 }
                 catch (Exception ex)
@@ -162,7 +160,7 @@ namespace KLTN.MarketPlaceListen
                             ProductNftId = decoded.Event.ProductId,
                             ProductHahIPFS = decoded.Event.HashInfo,
                             AmountOnSale = long.Parse(metadata.Amount),
-                            PriceOfOneItem = long.Parse(metadata.Price),
+                            PriceOfOneItem = decimal.Parse(metadata.Price),
                             ProductTypeName = metadata.ProductType,
                             ProductDescription = metadata.Description,
                             SaleAddress = decoded.Event.SaleAddress
@@ -191,7 +189,7 @@ namespace KLTN.MarketPlaceListen
                         {
                             ProductNftId = decoded.Event.ProductId,
                             AmountOnSale = decoded.Event.AmountOnSale,
-                            PriceOfOneItem = long.Parse(Nethereum.Web3.Web3.Convert.FromWei(decoded.Event.PriceOfOneItem).ToString()),
+                            PriceOfOneItem = decimal.Parse(Nethereum.Web3.Web3.Convert.FromWei(decoded.Event.PriceOfOneItem).ToString()),
                             SaleAddress = decoded.Event.SaleAddress
                         });
                     }

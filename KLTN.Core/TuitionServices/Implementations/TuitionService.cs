@@ -137,7 +137,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                             TuitionHashIPFS = joinedTuition.TuitionHashIPFS,
                             TuitionId = joinedTuition.TuitionId,
                         });
-                    break;
+                    //break;
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
             }
@@ -204,7 +204,17 @@ namespace KLTN.Core.TuitionServices.Implementations
         {
             long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
             var titionList = await _tuition.AsQueryable()
-                .Where(x => x.StartTime <= now && x.EndTime > now && x.ChainNetworkId == chainNetworkId)
+                .Where(x => ((x.EndTime <= now && x.EndTime > now) || x.TuitionStatus != Status.Closed.ToString()) && x.ChainNetworkId == chainNetworkId)
+                .Select(x => x.TuitionAddress)
+                .ToListAsync();
+            return titionList;
+        }
+
+        public async Task<List<string>> GetTuitionListReadyToClose(int chainNetworkId)
+        {
+            long now = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+            var titionList = await _tuition.AsQueryable()
+                .Where(x => x.StartTime <= now && x.TuitionStatus != Status.Closed.ToString() && x.ChainNetworkId == chainNetworkId)
                 .Select(x => x.TuitionAddress)
                 .ToListAsync();
             return titionList;
@@ -311,7 +321,7 @@ namespace KLTN.Core.TuitionServices.Implementations
                                 x.TuitionAddress.ToLower() == tuitionAddress.ToLower()
                                 && x.ChainNetworkId == chainNetworkId
                             );
-                var update = Builders<Tuition>.Update.Set(x => x.TuitionAddress, Status.Closed.ToString());
+                var update = Builders<Tuition>.Update.Set(x => x.TuitionStatus, Status.Closed.ToString());
                 await _tuition.UpdateOneAsync(filter, update);
             }
             catch (Exception ex)
