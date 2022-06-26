@@ -46,5 +46,12 @@ namespace KLTN.WebAPI.Controllers
             _lecturerService.RevokeLecturerRole(lecturerAddrs);
             return new JsonResult(new SuccessResponseModel());
         }
+
+        [HttpGet("event-amount/{lecturerAddress}")]
+        public JsonResult GetLecturerEventAmount(string lecturerAddress)
+        {
+            var result = _lecturerService.GetLecturerEventAmount(lecturerAddress);
+            return new JsonResult(new SuccessResponseModel(result));
+        }
     }
 }
