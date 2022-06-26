@@ -38,7 +38,7 @@ namespace KLTN.MarketPlaceListen
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("http://localhost:5014/");
+                    webBuilder.UseUrls("http://localhost:5015/");
                 });
     }
 }

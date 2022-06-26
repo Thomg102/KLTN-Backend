@@ -1,7 +1,4 @@
 ﻿using Nethereum.ABI.FunctionEncoding.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace KLTN.Common.SmartContracts.Events
 {
@@ -14,7 +11,7 @@ namespace KLTN.Common.SmartContracts.Events
         [Parameter("uint256", "_itemId", 2, false)]
         public long ProductId { get; set; }
 
-        [Parameter("uint256", "amount", 3, false)]
+        [Parameter("uint256", "_amount", 3, false)]
         public long AmountToActive { get; set; }
 
         [Parameter("uint256", "_activatedTime", 4, false)]
@@ -24,6 +21,6 @@ namespace KLTN.Common.SmartContracts.Events
         public string StudentAddress { get; set; }
 
         [Parameter("bool", "_isCourseNFT", 6, false)]
-        public string IsIdependentNFT { get; set; }
+        public bool IsIdependentNFT { get; set; }
     }
 }

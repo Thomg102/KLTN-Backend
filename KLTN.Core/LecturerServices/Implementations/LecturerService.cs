@@ -1,17 +1,14 @@
 ﻿using KLTN.Common.Exceptions;
-using KLTN.Common.Models;
 using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.DAL;
+using KLTN.DAL.Models;
 using KLTN.DAL.Models.Entities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using WebAPI.Utils.Constants;
 
@@ -22,21 +19,29 @@ namespace KLTN.Core.LecturerServicess.Implementations
         private readonly ILogger<LecturerService> _logger;
         private readonly IMongoDbContext _context;
         private readonly IMongoCollection<Lecturer> _lecturer;
+        private readonly IMongoCollection<Mission> _mission;
+        private readonly IMongoCollection<Subject> _subject;
+        private readonly IMongoCollection<Tuition> _tuition;
+        private readonly IMongoCollection<Scholarship> _scholarship;
 
         public LecturerService(ILogger<LecturerService> logger, IMongoDbContext context)
         {
             _logger = logger;
             _context = context;
             _lecturer = _context.GetCollection<Lecturer>(typeof(Lecturer).Name);
+            _mission = _context.GetCollection<Mission>(typeof(Mission).Name);
+            _subject = _context.GetCollection<Subject>(typeof(Subject).Name);
+            _tuition = _context.GetCollection<Tuition>(typeof(Tuition).Name);
+            _scholarship = _context.GetCollection<Scholarship>(typeof(Scholarship).Name);
         }
 
         // Get detail info of specific Lecturer
-        public LecturerDetailInfoResponseDTO GetDetailOfLecturer(string lecturerAddress)
+        public Lecturer GetDetailOfLecturer(string lecturerAddress)
         {
             try
             {
                 var lecturerInfo = _lecturer.Find<Lecturer>(x => x.LecturerAddress.ToLower() == lecturerAddress.ToLower()).FirstOrDefault();
-                return JsonConvert.DeserializeObject<LecturerDetailInfoResponseDTO>(JsonConvert.SerializeObject(lecturerInfo));
+                return lecturerInfo;
             }
             catch (Exception ex)
             {
@@ -115,6 +120,30 @@ namespace KLTN.Core.LecturerServicess.Implementations
                     var filter = Builders<Lecturer>.Filter.Where(x => x.LecturerAddress.ToLower() == lecturerAddr.ToLower());
                     await _lecturer.DeleteOneAsync(filter);
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RevokeLecturerRole");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
+
+        public LecturerEventAmountResponeDTO GetLecturerEventAmount(string lecturerAddr)
+        {
+            try
+            {
+                var amountSubject = _subject.Find<Subject>(x => x.LecturerAddress.ToLower() == lecturerAddr.ToLower()).ToList().Count;
+                var amountMission = _mission.Find<Mission>(x => x.LecturerAddress.ToLower() == lecturerAddr.ToLower()).ToList().Count;
+                var amountScholarchip = _scholarship.Find<Scholarship>(x => x.LecturerInCharge.ToLower() == lecturerAddr.ToLower()).ToList().Count;
+                var amountTuition = _tuition.Find<Tuition>(x => x.LecturerInCharge.ToLower() == lecturerAddr.ToLower()).ToList().Count;
+
+                return new LecturerEventAmountResponeDTO()
+                {
+                    AmountSubject = amountSubject,
+                    AmountMission = amountMission,
+                    AmountScholarchip = amountScholarchip,
+                    AmountTuition = amountTuition
+                };
             }
             catch (Exception ex)
             {

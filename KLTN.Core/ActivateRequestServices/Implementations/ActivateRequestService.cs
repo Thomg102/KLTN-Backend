@@ -159,6 +159,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 {
                     if (productStudent.ProductNftId == product.ProductNftId)
                     {
+                        int index = (student.ProductOfStudentList).IndexOf(productStudent);
                         productRemaining = productStudent.Amount - product.AmountToActivate;
                         if (productRemaining < 0)
                             throw new CustomException("Not enough product to request activate", 200);
@@ -173,6 +174,19 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             ProductImg = productStudent.ProductImg,
                             ProductDescription = productStudent.ProductDescription
                         };
+
+                        var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower());
+                        if (productRemaining > 0)
+                        {
+                            var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productRemaining);
+                            await _student.UpdateOneAsync(filter, update);
+                        }
+                        else
+                        {
+                            var update = Builders<Student>.Update.Pull(x => x.ProductOfStudentList, productToActivate);
+                            await _student.UpdateOneAsync(filter, update);
+                        }
+
                         break;
                     }
                 }
@@ -192,18 +206,6 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                     ActivatedTime = 0,
                     IsActivated = false
                 });
-
-                var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower());
-                if (productRemaining > 0)
-                {
-                    var update = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductNftId == product.ProductNftId).FirstOrDefault().Amount, productRemaining);
-                    await _student.UpdateOneAsync(filter, update);
-                }
-                else
-                {
-                    var update = Builders<Student>.Update.Pull(x => x.ProductOfStudentList, productToActivate);
-                    await _student.UpdateOneAsync(filter, update);
-                }
             }
             catch (Exception ex)
             {
@@ -227,8 +229,9 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                         if (productStudent.ProductId == productActivating.ProductId)
                         {
                             isExisted = true;
+                            int index = (student.ProductOfStudentList).IndexOf(productStudent);
                             var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == productActivating.StudentAddress.ToLower());
-                            var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList.Where(y => y.ProductId == productActivating.ProductId).FirstOrDefault().Amount, productStudent.Amount + activatingAmount);
+                            var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productStudent.Amount + activatingAmount);
                             await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                             break;
                         }
@@ -244,7 +247,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             ProductHahIPFS = productActivating.ProductHahIPFS,
                             ProductImg = productActivating.ProductImg,
                             ProductName = productActivating.ProductName,
-                            ProductTypeName = productActivating.ProductTypeName
+                            ProductTypeName = productActivating.ProductTypeName,
+                            ProductNftId = productActivating.ProductNftId,
                         });
                         await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
                     }
@@ -274,7 +278,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 await _activateRequest.UpdateOneAsync(filter, updateActivateTime);
 
                 var productTypeName = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductTypeName;
-                var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeAlias.ToLower() == productTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
+                var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
                 if (isIdependentNFT)
                 {
                     var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false).FirstOrDefault().Code;
@@ -282,7 +286,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                     var studentId = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().StudentId;
                     var nameProduct = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductName;
 
-                    var mailContent = new MailContent(){
+                    var mailContent = new MailContent()
+                    {
                         To = studentId + mailSettings.Domain.ToLower(),
                         Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
                         Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."

@@ -1,12 +1,9 @@
-﻿using KLTN.Common.Exceptions;
-using KLTN.Core.LecturerServices.DTOs;
+﻿using KLTN.Core.LecturerServices.DTOs;
 using KLTN.Core.LecturerServicess.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using WebAPI.Models;
-using WebAPI.Utils.Constants;
 
 namespace KLTN.WebAPI.Controllers
 {
@@ -48,6 +45,13 @@ namespace KLTN.WebAPI.Controllers
         {
             _lecturerService.RevokeLecturerRole(lecturerAddrs);
             return new JsonResult(new SuccessResponseModel());
+        }
+
+        [HttpGet("event-amount/{lecturerAddress}")]
+        public JsonResult GetLecturerEventAmount(string lecturerAddress)
+        {
+            var result = _lecturerService.GetLecturerEventAmount(lecturerAddress);
+            return new JsonResult(new SuccessResponseModel(result));
         }
     }
 }
