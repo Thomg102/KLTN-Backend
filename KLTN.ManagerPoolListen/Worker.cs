@@ -275,7 +275,6 @@ namespace KLTN.ManagerPoolListen
                                      MissionId = metadata.MissionId,
                                      MissionName = metadata.Name,
                                      MissionAddress = decoded.Event.ContractAddress,
-                                     MissionShortenName = metadata.ShortName,
                                      MissionImg = metadata.Img,
                                      MissionDescription = metadata.Description,
                                      MissionHashIPFS = decoded.Event.UrlMetadata,

@@ -11,7 +11,6 @@ namespace KLTN.Core.MissionServices.DTOs
         public string MissionAddress { get; set; }
         public string MissionName { get; set; }
         public string LecturerAddress { get; set; }
-        public string MissionShortenName { get; set; }
         public string MissionDescription { get; set; }
         public string MissionStatus { get; set; }
         public string DepartmentName { get; set; }

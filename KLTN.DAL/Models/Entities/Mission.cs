@@ -15,7 +15,6 @@ namespace KLTN.DAL.Models
         public string MissionImg { get; set; }
         public string MissionAddress { get; set; }
         public string MissionName { get; set; }
-        public string MissionShortenName { get; set; }
         public string MissionDescription { get; set; }
         public string MissionStatus { get; set; }
         public string MissionHashIPFS { get; set; }
