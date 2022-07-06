@@ -277,26 +277,32 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 await _activateRequest.UpdateOneAsync(filter, updateStatus);
                 await _activateRequest.UpdateOneAsync(filter, updateActivateTime);
 
-                var productTypeName = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductTypeName;
+                var productToActivate = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault();
+                var productTypeName = productToActivate.ProductTypeName;
                 var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
                 if (isIdependentNFT)
                 {
-                    var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false).FirstOrDefault().Code;
+                    var itemAmount = productToActivate.AmountToActivate;
                     var studentAddress = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().StudentAddress;
                     var studentId = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().StudentId;
                     var nameProduct = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault().ProductName;
 
-                    var mailContent = new MailContent()
+                    for (int i = 0; i < itemAmount; i++)
                     {
-                        To = studentId + mailSettings.Domain.ToLower(),
-                        Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
-                        Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
-                    };
-                    await SendMail(mailContent);
+                        var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false).FirstOrDefault().Code;
 
-                    var filterUpdateCodeUsed = Builders<CodeActivateProduct>.Filter.Where(x => x.Code == codeActivate);
-                    var updateUpdateCodeUsed = Builders<CodeActivateProduct>.Update.Set(x => x.IsUsed, true);
-                    await _codeActivate.UpdateOneAsync(filterUpdateCodeUsed, updateUpdateCodeUsed);
+                        var mailContent = new MailContent()
+                        {
+                            To = studentId + mailSettings.Domain.ToLower(),
+                            Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
+                            Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
+                        };
+                        await SendMail(mailContent);
+
+                        var filterUpdateCodeUsed = Builders<CodeActivateProduct>.Filter.Where(x => x.Code == codeActivate);
+                        var updateUpdateCodeUsed = Builders<CodeActivateProduct>.Update.Set(x => x.IsUsed, true);
+                        await _codeActivate.UpdateOneAsync(filterUpdateCodeUsed, updateUpdateCodeUsed);
+                    }
                 }
             }
             catch (Exception ex)
