@@ -13,9 +13,6 @@ namespace KLTN.ManagerPoolListen.DTOs
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("shortName")]
-        public string ShortName { get; set; }
-
         [JsonProperty("award")]
         public string Award { get; set; }
 
