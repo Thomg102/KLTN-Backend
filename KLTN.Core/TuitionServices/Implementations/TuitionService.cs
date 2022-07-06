@@ -238,13 +238,12 @@ namespace KLTN.Core.TuitionServices.Implementations
                             IsCompleted = false,
                         });
                         await _tuition.UpdateOneAsync(filter, update);
+                        var tuition = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                        var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, tuition.JoinedStudentAmount + 1);
+                        await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
                     }
                 }
-
-                var tuition = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionpAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, tuition.JoinedStudentAmount + 1);
-                await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {
@@ -271,13 +270,12 @@ namespace KLTN.Core.TuitionServices.Implementations
                             IsCompleted = false,
                         });
                         await _tuition.UpdateOneAsync(filter, update);
+                        var scholarship = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                        var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                        var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount - 1);
+                        await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
                     }
                 }
-
-                var scholarship = _tuition.Find<Tuition>(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
-                var filterJoinedStudentAmount = Builders<Tuition>.Filter.Where(x => x.TuitionAddress.ToLower() == tuitionAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
-                var updateJoinedStudentAmount = Builders<Tuition>.Update.Set(x => x.JoinedStudentAmount, scholarship.JoinedStudentAmount - 1);
-                await _tuition.UpdateOneAsync(filterJoinedStudentAmount, updateJoinedStudentAmount);
             }
             catch (Exception ex)
             {

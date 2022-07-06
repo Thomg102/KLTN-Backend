@@ -267,7 +267,7 @@ namespace KLTN.Core.StudentServices.Implementations
             try
             {
                 var currentHashIPFS = _student.Find<Student>(x => x.StudentAddress.ToLower() == studentAddress.ToLower()).FirstOrDefault().StudentHashIPFS;
-                var filter = Builders<Student>.Filter.Eq(x => x.StudentAddress.ToLower(), studentAddress.ToLower());
+                var filter = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == studentAddress.ToLower());
                 var update = Builders<Student>.Update.Set(x => x.StudentName, studentInfo.StudentName)
                                                      .Set(x => x.StudentImg, studentInfo.StudentImg)
                                                      .Set(x => x.Sex, studentInfo.Sex)
