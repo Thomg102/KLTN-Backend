@@ -346,7 +346,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
         {
             try
             {
-                var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeAlias.ToLower() == request.ProductTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
+                var nftType = _productType.Find<ProductType>(x => x.ProductTypeAlias.ToLower() == request.ProductTypeName.ToLower()).FirstOrDefault();
+                var isIdependentNFT = nftType.IsIdependentNFT;
                 if (isIdependentNFT)
                 {
                     var listCodeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == request.ProductTypeName.ToLower()).ToList().Select(x => x.Code);
@@ -358,7 +359,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             {
                                 Code = code,
                                 IsUsed = false,
-                                ProductTypeName = request.ProductTypeName
+                                ProductTypeName = nftType.ProductTypeName
                             });
                         }
                     }

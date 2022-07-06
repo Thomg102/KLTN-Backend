@@ -53,6 +53,10 @@ namespace KLTN.MarketPlaceListen
                 options.DatabaseName = configuration.DatabaseName;
             });
 
+            services.AddOptions();
+            var mailsettings = Configuration.GetSection("MailSettings");
+            services.Configure<MailSettings>(mailsettings);
+
             services.AddSingleton<IMongoDbContext, MongoDbContext>();
             services.AddScoped<IMissionService, MissionService>();
             services.AddScoped<ITuitionService, TuitionService>();
