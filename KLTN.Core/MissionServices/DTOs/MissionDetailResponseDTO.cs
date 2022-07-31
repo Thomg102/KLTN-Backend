@@ -24,5 +24,8 @@ namespace KLTN.Core.MissionServices.DTOs
         public decimal TokenAmount { get; set; }
         public List<JoinedStudentDTO> JoinedStudentList { get; set; }
         public bool IsJoined { get; set; }
+        public int RewardType { get; set; }
+        public string RewardName { get; set; }
+        public string NFTId { get; set; }
     }
 }

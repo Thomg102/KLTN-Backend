@@ -6,6 +6,7 @@ using KLTN.Common.SmartContracts.Functions.MissionContract;
 using KLTN.Common.Utilities.Constants;
 using KLTN.Core.LecturerServicess.Interfaces;
 using KLTN.Core.MissionServices.Interfaces;
+using KLTN.Core.ProductServices.Interfaces;
 using KLTN.Core.ScholarshipServices.Interfaces;
 using KLTN.Core.StudentServices.Interfaces;
 using KLTN.Core.SubjectServices.Interfaces;
@@ -69,6 +70,7 @@ namespace KLTN.ManagerPoolListen
                 try
                 {
                     await client.StartAsync();
+                    await ListenReceivedItemMissionEvent(client);
                     await ListenAddStudentEvent(client);
                     await ListenAddLecturerEvent(client);
                     await ListenUpdateStudentInfoEvent(client);
@@ -131,6 +133,31 @@ namespace KLTN.ManagerPoolListen
                 throw new CustomException("Transaction info is null", 400);
 
             return myFunctionTxn;
+        }
+
+        private async Task ListenReceivedItemMissionEvent(StreamingWebSocketClient client)
+        {
+            var filter = _web3.Eth.GetEvent<ReceivedItemMissionEvent>(managerPoolAddress).CreateFilterInput();
+            var subscription = new EthLogsObservableSubscription(client);
+            subscription.GetSubscriptionDataResponsesAsObservable().
+                Subscribe(async log =>
+                {
+                    EventLog<ReceivedItemMissionEvent> decoded = Event<ReceivedItemMissionEvent>.DecodeEvent(log);
+                    using (var scope = _services.CreateScope())
+                    {
+                        var scopedProcessingService = scope.ServiceProvider.GetRequiredService<IProductService>();
+                        await scopedProcessingService.ReceivedItemMission(new Core.ProductServices.DTOs.ReceivedItemMissionDTO
+                        {
+                            ProductNftId = decoded.Event.ProductId,
+                            Amount = decoded.Event.Amount,
+                            StudentAddress = decoded.Event.StudentAddress
+                        });
+                    }
+                    _logger.LogInformation($"Listening received item in mission with ProductId: " + decoded.Event.ProductId);
+                });
+
+            subscription.GetSubscribeResponseAsObservable().Subscribe(id => _logger.LogInformation($"Subscribed ListenReceivedItemMissionEvent Event - {DateTime.Now.ToString("dd-MM-yyyy HH:mm:ss")}"));
+            await subscription.SubscribeAsync(filter);
         }
 
         private async Task ListenNewTuitionEvent(StreamingWebSocketClient client)
@@ -287,6 +314,9 @@ namespace KLTN.ManagerPoolListen
                                      LecturerAddress = metadata.LecturerInCharge,
                                      TokenAmount = decimal.Parse(metadata.Award),
                                      LecturerName = metadata.LecturerName,
+                                     RewardType = metadata.RewardType,
+                                     RewardName = metadata.RewardName,
+                                     NFTId= metadata.NFTId
                                  });
                                  await FollowMissionCompetitionAsync(client, decoded.Event.ContractAddress);
                              }

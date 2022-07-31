@@ -60,7 +60,10 @@ namespace KLTN.Core.MissionServices.Implementations
                     TokenAmount = mission.TokenAmount,
                     JoinedStudentList = mission.JoinedStudentList,
                     JoinedStudentAmount = mission.JoinedStudentAmount,
-                    IsJoined = false
+                    IsJoined = false,
+                    RewardName = mission.RewardName,
+                    RewardType = mission.RewardType,
+                    NFTId = mission.NFTId
                 };
                 if (studentAddress != null)
                     foreach (var joinedStudentList in mission.JoinedStudentList)
@@ -114,7 +117,10 @@ namespace KLTN.Core.MissionServices.Implementations
                                     TokenAmount = joinedMission.TokenAmount,
                                     JoinedStudentList = joinedMission.JoinedStudentList,
                                     JoinedStudentAmount = joinedMission.JoinedStudentAmount,
-                                    IsJoined = true
+                                    IsJoined = true,
+                                    RewardName = joinedMission.RewardName,
+                                    RewardType = joinedMission.RewardType,
+                                    NFTId = joinedMission.NFTId
                                 });
                                 isExistedJoinedStudent = true;
                                 break;
@@ -141,7 +147,10 @@ namespace KLTN.Core.MissionServices.Implementations
                             TokenAmount = joinedMission.TokenAmount,
                             JoinedStudentList = joinedMission.JoinedStudentList,
                             JoinedStudentAmount = joinedMission.JoinedStudentAmount,
-                            IsJoined = false
+                            IsJoined = false,
+                            RewardName = joinedMission.RewardName,
+                            RewardType = joinedMission.RewardType,
+                            NFTId = joinedMission.NFTId
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
@@ -203,6 +212,9 @@ namespace KLTN.Core.MissionServices.Implementations
                             TokenAmount = joinedMission.TokenAmount,
                             JoinedStudentList = joinedMission.JoinedStudentList,
                             JoinedStudentAmount = joinedMission.JoinedStudentAmount,
+                            RewardName = joinedMission.RewardName,
+                            RewardType = joinedMission.RewardType,
+                            NFTId = joinedMission.NFTId
                         });
                 }
                 return result.OrderByDescending(x => x.StartTime).ToList();
@@ -259,7 +271,10 @@ namespace KLTN.Core.MissionServices.Implementations
                     LecturerAddress = mission.LecturerAddress,
                     LecturerName = mission.LecturerName,
                     TokenAmount = mission.TokenAmount,
-                    JoinedStudentList = new List<JoinedStudentDTO>() { }
+                    JoinedStudentList = new List<JoinedStudentDTO>() { },
+                    RewardName = mission.RewardName,
+                    RewardType = mission.RewardType,
+                    NFTId = mission.NFTId
                 });
             }
             catch (Exception ex)

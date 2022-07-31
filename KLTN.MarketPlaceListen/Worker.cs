@@ -39,7 +39,7 @@ namespace KLTN.MarketPlaceListen
         public Worker(ILogger<Worker> logger, IServiceScopeFactory serviceScopeFactory, IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
-            _services = serviceScopeFactory;
+            _services = serviceScopeFactory;    
             _hostApplicationLifetime = hostApplicationLifetime;
             _web3 = new Nethereum.Web3.Web3(ListenMarketplaceAppSetting.Value.RpcUrl);
             _web3.TransactionManager.UseLegacyAsDefault = true;

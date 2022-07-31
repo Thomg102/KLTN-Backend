@@ -470,5 +470,49 @@ namespace KLTN.Core.ProductServices.Implementations
                 throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
             }
         }
+
+        public async Task ReceivedItemMission(ReceivedItemMissionDTO product)
+        {
+            try
+            {
+                var productOnSale = _product.Find<ProductOnSale>(x => x.ProductNftId == product.ProductNftId).FirstOrDefault();
+                var isExisted = false;
+                var student = _student.Find<Student>(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower()).FirstOrDefault();
+                foreach (var productStudent in student.ProductOfStudentList)
+                {
+                    if (productStudent.ProductNftId == product.ProductNftId)
+                    {
+                        isExisted = true;
+                        int index = (student.ProductOfStudentList).IndexOf(productStudent);
+
+                        var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower());
+                        var updateStudentAmount = Builders<Student>.Update.Set(x => x.ProductOfStudentList[index].Amount, productStudent.Amount + product.Amount);
+                        await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
+                        break;
+                    }
+                }
+                if (!isExisted)
+                {
+                    var filterStudentAmount = Builders<Student>.Filter.Where(x => x.StudentAddress.ToLower() == product.StudentAddress.ToLower());
+                    var updateStudentAmount = Builders<Student>.Update.Push(x => x.ProductOfStudentList, new ProductOfStudentDTO()
+                    {
+                        ProductId = productOnSale.ProductId,
+                        ProductNftId = product.ProductNftId,
+                        Amount = product.Amount,
+                        ProductDescription = productOnSale.ProductDescription,
+                        ProductHahIPFS = productOnSale.ProductHahIPFS,
+                        ProductImg = productOnSale.ProductImg,
+                        ProductName = productOnSale.ProductName,
+                        ProductTypeName = productOnSale.ProductTypeName
+                    });
+                    await _student.UpdateOneAsync(filterStudentAmount, updateStudentAmount);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ReceivedItemMission");
+                throw new CustomException(ErrorMessage.UNKNOWN, ErrorCode.UNKNOWN);
+            }
+        }
     }
 }

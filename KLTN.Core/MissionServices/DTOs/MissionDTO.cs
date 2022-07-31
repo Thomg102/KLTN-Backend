@@ -18,5 +18,8 @@
         public string LecturerAddress { get; set; }
         public string LecturerName { get; set; }
         public decimal TokenAmount { get; set; }
+        public int RewardType { get; set; }
+        public string RewardName { get; set; }
+        public string NFTId { get; set; }
     }
 }

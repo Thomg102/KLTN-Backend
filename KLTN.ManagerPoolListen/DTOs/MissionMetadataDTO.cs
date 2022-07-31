@@ -45,6 +45,15 @@ namespace KLTN.ManagerPoolListen.DTOs
 
         [JsonProperty("description")]
         public string Description { get; set; }
+        
+        [JsonProperty("rewardType")]
+        public int RewardType { get; set; }
+        
+        [JsonProperty("rewardName")]
+        public string RewardName { get; set; }
+
+        [JsonProperty("itemId")]
+        public string NFTId { get; set; }
     }
 
 
