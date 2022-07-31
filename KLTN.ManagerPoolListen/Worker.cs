@@ -971,8 +971,8 @@ namespace KLTN.ManagerPoolListen
                              {
                                  var scopedProcessingService = scope.ServiceProvider.GetRequiredService<ISubjectService>();
                                  var myFunctionTxn = await GetTransactionInput(decoded.Log.TransactionHash);
-                                 var inputData = new ConfirmCompletedAddress().DecodeTransaction(myFunctionTxn);
-                                 await scopedProcessingService.UpdateLecturerConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList);
+                                 var inputData = new ConfirmCompletedAddressSubject().DecodeTransaction(myFunctionTxn);
+                                 await scopedProcessingService.UpdateLecturerConfirmComplete(contractAddress, chainNetworkId, inputData.StudentList, inputData.ScoretList);
                                  _logger.LogInformation("Store Confirm Subject Event successfully with Contract: " + contractAddress);
                              }
                          }

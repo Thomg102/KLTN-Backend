@@ -1,5 +1,6 @@
 ﻿using KLTN.Common.Enums;
 using KLTN.Common.Exceptions;
+using KLTN.Common.SmartContracts.Functions.MissionContract;
 using KLTN.Core.SubjectServices.DTOs;
 using KLTN.Core.SubjectServices.Interfaces;
 using KLTN.DAL;
@@ -304,26 +305,51 @@ namespace KLTN.Core.SubjectServices.Implementations
             }
         }
 
-        public async Task UpdateLecturerConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddressList)
+        public async Task UpdateLecturerConfirmComplete(string subjectAddress, int chainNetworkId, List<string> studentAddressList, List<Score> scoreList)
         {
             try
             {
                 var Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+
+                foreach (var studentAddress in studentAddressList)
+                {
+                    var i = 0;
+                    var stAddress = "";
+                    foreach (var joinedStudentList in Subject.JoinedStudentList)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
+                        {
+                            i++;
+                            break;
+                        }
+                    if (i == 0)
+                    {
+                        await UpdateStudentRegister(subjectAddress, chainNetworkId, stAddress);
+                    }
+                }
+
+                Subject = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
                 var filter = Builders<Subject>.Filter.Where(x =>
                     x.SubjectAddress.ToLower() == subjectAddress.ToLower()
                     && x.ChainNetworkId == chainNetworkId
                 );
-                foreach (var joinedStudentList in Subject.JoinedStudentList)
-                    foreach (var studentAddress in studentAddressList)
-                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower())
+                for (int i = 0; i < studentAddressList.Count; i++)
+                {
+                    var studentAddress = studentAddressList[i];
+                    foreach (var joinedStudentList in Subject.JoinedStudentList)
+                        if (joinedStudentList.StudentAddress.ToLower() == studentAddress.ToLower() && scoreList[i].ScoreArray[4] >= 50000)
                         {
-
                             int index = (Subject.JoinedStudentList).IndexOf(joinedStudentList);
                             var update = Builders<Subject>.Update.Set(x => x.JoinedStudentList[index].IsCompleted, true);
 
                             await _subject.UpdateOneAsync(filter, update);
                             break;
                         }
+                }
+                var filters = Builders<Subject>.Filter.Where(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId);
+                var mission = _subject.Find<Subject>(x => x.SubjectAddress.ToLower() == subjectAddress.ToLower() && x.ChainNetworkId == chainNetworkId).FirstOrDefault();
+                var updateJoinedStudentAmount = Builders<Subject>.Update.Set(x => x.JoinedStudentAmount, mission.JoinedStudentList.Count);
+                await _subject.UpdateOneAsync(filters, updateJoinedStudentAmount);
+
             }
             catch (Exception ex)
             {
