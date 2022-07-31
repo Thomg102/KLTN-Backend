@@ -7,6 +7,7 @@ namespace KLTN.Core.ActivateRequestServices.DTOs
     public class ActivateCodeRequestDTO
     {
         public string ProductTypeName { get; set; }
+        public long ProductNftId { get; set; }
         public List<string> ListCode { get; set; }
     }
 }

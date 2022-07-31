@@ -278,6 +278,7 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                 await _activateRequest.UpdateOneAsync(filter, updateActivateTime);
 
                 var productToActivate = _activateRequest.Find<ActivateRequest>(x => x.RequestId == request.RequestId).FirstOrDefault();
+                var productNFTId = productToActivate.ProductNftId;
                 var productTypeName = productToActivate.ProductTypeName;
                 var isIdependentNFT = _productType.Find<ProductType>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower()).FirstOrDefault().IsIdependentNFT;
                 if (isIdependentNFT)
@@ -289,13 +290,13 @@ namespace KLTN.Core.RequestActivateServices.Implementations
 
                     for (int i = 0; i < itemAmount; i++)
                     {
-                        var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false).FirstOrDefault().Code;
+                        var codeActivate = _codeActivate.Find<CodeActivateProduct>(x => x.ProductTypeName.ToLower() == productTypeName.ToLower() && x.IsUsed == false && x.ProductNftId == productNFTId).FirstOrDefault().Code;
 
                         var mailContent = new MailContent()
                         {
                             To = studentId + mailSettings.Domain.ToLower(),
                             Subject = "MA KICH HOAT VAT PHAM " + nameProduct.ToUpper(),
-                            Body = "Ma kich hoat vat pham " + nameProduct + ": " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
+                            Body = "Ma kich hoat vat pham " + nameProduct + " ID: " + productNFTId + " - " + codeActivate + ". Vui long khong chia se ma kich hoat nay cho ai khac."
                         };
                         await SendMail(mailContent);
 
@@ -365,7 +366,8 @@ namespace KLTN.Core.RequestActivateServices.Implementations
                             {
                                 Code = code,
                                 IsUsed = false,
-                                ProductTypeName = nftType.ProductTypeName
+                                ProductTypeName = nftType.ProductTypeName,
+                                ProductNftId = request.ProductNftId,
                             });
                         }
                     }
